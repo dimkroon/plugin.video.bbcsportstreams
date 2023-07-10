@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addon id="plugin.video.bbcsportstreams" name="BBC sport streams" version="0.4.0" provider-name="Dimitri Kroon">
+  <requires>
+    <import addon="xbmc.python" version="3.0.0"/>
+    <import addon="script.module.requests"/>
+    <import addon="script.module.codequick"/>
+    <import addon="script.module.inputstreamhelper"/>
+  </requires>
+  <extension point="xbmc.python.pluginsource" library="addon.py">
+    <provides>video</provides>
+  </extension>
+  <extension point="xbmc.addon.metadata">
+    <platform>all</platform>
+    <summary>Sport streams from iplayer. May break any time.</summary>
+    <description>Very simple addon to play Sport streams from iplayer.[CR]Hopefully just enough to watch Wimbledon 2023</description>
+    <disclaimer lang="en">This add-on is not developed by the BBC and is no way affiliated with, or endorsed by the BBC.
+    </disclaimer>
+    <assets>
+      <icon>resources/icon.png</icon>
+      <fanart>resources/fanart.jpg</fanart>
+    </assets>
+    <reuselanguageinvoker>false</reuselanguageinvoker>
+  </extension>
+</addon>

@@ -1,0 +1,260 @@
+{
+  "media": [
+    {
+      "width": "512",
+      "bitrate": "544",
+      "service": "pc_stream_audio_video_webcast_uk_av_pv5_pa3",
+      "connection": [
+        {
+          "authExpiresOffset": 66085,
+          "authExpires": "2023-01-12T14:58:48+00:00",
+          "transferFormat": "hls",
+          "priority": "1",
+          "href": "http://a.files.bbci.co.uk/media/live/manifesto/audio_video/webcast/hls/uk/hls_pc/ak/sport_stream_01.m3u8",
+          "supplier": "akamai_hls_live",
+          "dpw": "50",
+          "protocol": "http"
+        },
+        {
+          "priority": "2",
+          "authExpiresOffset": 84699,
+          "authExpires": "2023-01-12T20:09:02+00:00",
+          "transferFormat": "hls",
+          "protocol": "http",
+          "href": "http://a.files.bbci.co.uk/media/live/manifesto/audio_video/webcast/hls/uk/hls_pc/cf/sport_stream_01.m3u8",
+          "supplier": "cloudfront_hls_live",
+          "dpw": "50"
+        },
+        {
+          "priority": "11",
+          "authExpiresOffset": 83385,
+          "transferFormat": "hls",
+          "authExpires": "2023-01-12T19:47:08+00:00",
+          "protocol": "https",
+          "href": "https://a.files.bbci.co.uk/media/live/manifesto/audio_video/webcast/hls/uk/hls_pc/aks/sport_stream_01.m3u8",
+          "dpw": "50",
+          "supplier": "akamai_hls_live_https"
+        },
+        {
+          "authExpires": "2023-01-12T19:25:40+00:00",
+          "transferFormat": "hls",
+          "authExpiresOffset": 82097,
+          "priority": "12",
+          "supplier": "cloudfront_hls_live_https",
+          "dpw": "50",
+          "href": "https://a.files.bbci.co.uk/media/live/manifesto/audio_video/webcast/hls/uk/hls_pc/cfs/sport_stream_01.m3u8",
+          "protocol": "https"
+        }
+      ],
+      "height": "288",
+      "kind": "video",
+      "type": "video/mp4",
+      "encoding": "h264"
+    },
+    {
+      "width": "960",
+      "bitrate": "1700",
+      "service": "pc_stream_audio_video_webcast_uk_av_pv10_pa3",
+      "connection": [
+        {
+          "authExpires": "2023-01-12T17:40:47+00:00",
+          "transferFormat": "hls",
+          "authExpiresOffset": 75804,
+          "priority": "1",
+          "dpw": "50",
+          "supplier": "akamai_hls_live",
+          "href": "http://a.files.bbci.co.uk/media/live/manifesto/audio_video/webcast/hls/uk/hls_pc/ak/sport_stream_01.m3u8",
+          "protocol": "http"
+        },
+        {
+          "href": "http://a.files.bbci.co.uk/media/live/manifesto/audio_video/webcast/hls/uk/hls_pc/cf/sport_stream_01.m3u8",
+          "supplier": "cloudfront_hls_live",
+          "dpw": "50",
+          "protocol": "http",
+          "authExpiresOffset": 65133,
+          "transferFormat": "hls",
+          "authExpires": "2023-01-12T14:42:56+00:00",
+          "priority": "2"
+        },
+        {
+          "dpw": "50",
+          "supplier": "akamai_hls_live_https",
+          "href": "https://a.files.bbci.co.uk/media/live/manifesto/audio_video/webcast/hls/uk/hls_pc/aks/sport_stream_01.m3u8",
+          "protocol": "https",
+          "authExpires": "2023-01-12T17:31:52+00:00",
+          "transferFormat": "hls",
+          "authExpiresOffset": 75269,
+          "priority": "11"
+        },
+        {
+          "protocol": "https",
+          "dpw": "50",
+          "supplier": "cloudfront_hls_live_https",
+          "href": "https://a.files.bbci.co.uk/media/live/manifesto/audio_video/webcast/hls/uk/hls_pc/cfs/sport_stream_01.m3u8",
+          "priority": "12",
+          "authExpires": "2023-01-12T18:24:54+00:00",
+          "transferFormat": "hls",
+          "authExpiresOffset": 78451
+        }
+      ],
+      "height": "540",
+      "kind": "video",
+      "type": "video/mp4",
+      "encoding": "h264"
+    },
+    {
+      "height": "360",
+      "service": "pc_stream_audio_video_webcast_uk_av_pv8_pa3",
+      "connection": [
+        {
+          "transferFormat": "hls",
+          "authExpires": "2023-01-12T20:19:51+00:00",
+          "authExpiresOffset": 85348,
+          "priority": "1",
+          "supplier": "akamai_hls_live",
+          "dpw": "50",
+          "href": "http://a.files.bbci.co.uk/media/live/manifesto/audio_video/webcast/hls/uk/hls_pc/ak/sport_stream_01.m3u8",
+          "protocol": "http"
+        },
+        {
+          "authExpiresOffset": 78907,
+          "authExpires": "2023-01-12T18:32:30+00:00",
+          "transferFormat": "hls",
+          "priority": "2",
+          "href": "http://a.files.bbci.co.uk/media/live/manifesto/audio_video/webcast/hls/uk/hls_pc/cf/sport_stream_01.m3u8",
+          "supplier": "cloudfront_hls_live",
+          "dpw": "50",
+          "protocol": "http"
+        },
+        {
+          "priority": "11",
+          "authExpiresOffset": 74206,
+          "authExpires": "2023-01-12T17:14:09+00:00",
+          "transferFormat": "hls",
+          "protocol": "https",
+          "href": "https://a.files.bbci.co.uk/media/live/manifesto/audio_video/webcast/hls/uk/hls_pc/aks/sport_stream_01.m3u8",
+          "supplier": "akamai_hls_live_https",
+          "dpw": "50"
+        },
+        {
+          "protocol": "https",
+          "supplier": "cloudfront_hls_live_https",
+          "dpw": "50",
+          "href": "https://a.files.bbci.co.uk/media/live/manifesto/audio_video/webcast/hls/uk/hls_pc/cfs/sport_stream_01.m3u8",
+          "priority": "12",
+          "transferFormat": "hls",
+          "authExpires": "2023-01-12T19:55:38+00:00",
+          "authExpiresOffset": 83895
+        }
+      ],
+      "bitrate": "942",
+      "width": "640",
+      "type": "video/mp4",
+      "encoding": "h264",
+      "kind": "video"
+    },
+    {
+      "width": "1280",
+      "bitrate": "5276",
+      "service": "pc_stream_audio_video_webcast_uk_av_pv14_pa3",
+      "connection": [
+        {
+          "authExpiresOffset": 85426,
+          "transferFormat": "dash",
+          "authExpires": "2023-01-12T20:21:09+00:00",
+          "priority": "1",
+          "href": "http://ve-dash-uk-live.akamaized.net/pool_901/live/uk/sport_stream_01/sport_stream_01.isml/pc_hd_abr_v2_dash.mpd",
+          "supplier": "akamai_dash_live",
+          "dpw": "50",
+          "protocol": "http"
+        },
+        {
+          "protocol": "http",
+          "supplier": "cloudfront_dash_live",
+          "dpw": "50",
+          "href": "http://ve-dash-uk.live.cf.md.bbci.co.uk/pool_901/live/uk/sport_stream_01/sport_stream_01.isml/pc_hd_abr_v2_dash.mpd",
+          "priority": "2",
+          "authExpires": "2023-01-12T18:55:32+00:00",
+          "transferFormat": "dash",
+          "authExpiresOffset": 80289
+        },
+        {
+          "protocol": "https",
+          "supplier": "akamai_dash_live_https",
+          "dpw": "50",
+          "href": "https://ve-dash-uk-live.akamaized.net/pool_901/live/uk/sport_stream_01/sport_stream_01.isml/pc_hd_abr_v2_dash.mpd",
+          "priority": "11",
+          "transferFormat": "dash",
+          "authExpires": "2023-01-12T19:20:00+00:00",
+          "authExpiresOffset": 81757
+        },
+        {
+          "href": "https://ve-dash-uk.live.cf.md.bbci.co.uk/pool_901/live/uk/sport_stream_01/sport_stream_01.isml/pc_hd_abr_v2_dash.mpd",
+          "supplier": "cloudfront_dash_live_https",
+          "dpw": "50",
+          "protocol": "https",
+          "authExpiresOffset": 84748,
+          "authExpires": "2023-01-12T20:09:51+00:00",
+          "transferFormat": "dash",
+          "priority": "12"
+        }
+      ],
+      "height": "720",
+      "kind": "video",
+      "type": "video/mp4",
+      "encoding": "h264"
+    },
+    {
+      "kind": "video",
+      "encoding": "h264",
+      "type": "video/mp4",
+      "width": "384",
+      "bitrate": "352",
+      "connection": [
+        {
+          "priority": "1",
+          "authExpires": "2023-01-12T19:44:19+00:00",
+          "transferFormat": "hls",
+          "authExpiresOffset": 83216,
+          "protocol": "http",
+          "supplier": "akamai_hls_live",
+          "dpw": "50",
+          "href": "http://a.files.bbci.co.uk/media/live/manifesto/audio_video/webcast/hls/uk/hls_pc/ak/sport_stream_01.m3u8"
+        },
+        {
+          "priority": "2",
+          "authExpiresOffset": 77644,
+          "authExpires": "2023-01-12T18:11:27+00:00",
+          "transferFormat": "hls",
+          "protocol": "http",
+          "href": "http://a.files.bbci.co.uk/media/live/manifesto/audio_video/webcast/hls/uk/hls_pc/cf/sport_stream_01.m3u8",
+          "dpw": "50",
+          "supplier": "cloudfront_hls_live"
+        },
+        {
+          "transferFormat": "hls",
+          "authExpires": "2023-01-12T18:27:43+00:00",
+          "authExpiresOffset": 78620,
+          "priority": "11",
+          "supplier": "akamai_hls_live_https",
+          "dpw": "50",
+          "href": "https://a.files.bbci.co.uk/media/live/manifesto/audio_video/webcast/hls/uk/hls_pc/aks/sport_stream_01.m3u8",
+          "protocol": "https"
+        },
+        {
+          "authExpiresOffset": 68838,
+          "authExpires": "2023-01-12T15:44:41+00:00",
+          "transferFormat": "hls",
+          "priority": "12",
+          "href": "https://a.files.bbci.co.uk/media/live/manifesto/audio_video/webcast/hls/uk/hls_pc/cfs/sport_stream_01.m3u8",
+          "dpw": "50",
+          "supplier": "cloudfront_hls_live_https",
+          "protocol": "https"
+        }
+      ],
+      "service": "pc_stream_audio_video_webcast_uk_av_pv4_pa2",
+      "height": "216"
+    }
+  ],
+  "disclaimer": "This code and data form part of the BBC iPlayer content protection system. Tampering with, removal of, misuse of, or unauthorised use of this code or data constitutes circumvention of the BBC's content protection measures and may result in legal action. BBC (C) 2017."
+}
