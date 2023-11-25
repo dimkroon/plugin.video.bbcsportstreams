@@ -54,7 +54,7 @@ msgid "Log level"
 msgstr ""
 
 msgctxt "#30300"
-msgid "ITV Hub account"
+msgid "BBC account"
 msgstr ""
 
 msgctxt "#30301"
@@ -86,8 +86,8 @@ msgid "Account error"
 msgstr ""
 
 msgctxt "#30611"
-msgid "You need to log in to your ITV hub account.\n"
-"You can always log in and log out on the Cinetree addon's settings page."
+msgid "You need to log in to your BBC account.\n"
+"You can always log in and log out on the addon's settings page."
 msgstr ""
 
 msgctxt "#30612"
@@ -182,7 +182,7 @@ msgid "Access not allowed."
 msgstr ""
 
 msgctxt "#30902"
-msgid "Not logged in at ITV hub."
+msgid "Not logged in at BBC."
 msgstr ""
 
 msgctxt "#30903"
