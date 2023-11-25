@@ -6,9 +6,10 @@
       <setting id="log-handler" label="30112" type="text" default="kodi" visible="false"/>
     </category>
 
-    <!-- BBC account -->
+    <!-- BBC account
     <category label="30300">
         <setting id="bbc-uname" type="text" label="30301" default=""/>
         <setting id="bbc-passw" type="text" label="30302" default="" option="hidden"/>
     </category>
+    -->
 </settings>
