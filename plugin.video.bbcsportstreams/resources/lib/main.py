@@ -26,12 +26,11 @@ USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:101.0) Gecko/20100101 F
 def root(_):
     for i in range(1, 15):
         stream_name = 'Sport stream {}'.format(i)
-        yield Listitem.from_dict(play_stream_live,
-                                 stream_name,
-                                 params={'channel': stream_name,
-                                         'url': "https://ve-hls-push-uk.live.fastly.md.bbci.co.uk/x=3/i=urn:bbc:pips:service:uk_sport_stream_{:02d}/pc_hd_abr_v2.m3u8".format(i)})
-                                         # 'url': 'https://ve-cmaf-push-uk.live.fastly.md.bbci.co.uk/x=3/i=urn:bbc:pips:service:uk_sport_stream_0{}/pc_hd_abr_v2.mpd'.format(i)})
-
+        yield Listitem.from_dict(
+            play_stream_live,
+            stream_name,
+            params={'channel': stream_name,
+                    'url': 'https://ve-hls-push-uk-live.akamaized.net/x=4/i=urn:bbc:pips:service:uk_sport_stream_{:02d}/pc_hd_abr_v2.m3u8'.format(i)})
 
 
 def create_dash_stream_item(name, manifest_url, resume_time=None):
@@ -70,10 +69,7 @@ def create_dash_stream_item(name, manifest_url, resume_time=None):
 @Resolver.register
 def play_stream_live(_, channel, url):
     logger.info('play live stream - channel=%s, url=%s', channel, url)
-
     list_item = create_dash_stream_item(channel, url, resume_time='43200')
     # if list_item:
     #     list_item.property['inputstream.adaptive.manifest_update_parameter'] = 'full'
     return list_item
-
-
