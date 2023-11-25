@@ -3,7 +3,9 @@
 #  SPDX-License-Identifier: GPL-2.0-or-later
 #  This file is part of plugin.video.bbcsportstreams
 
+import sys
 
+from xbmcplugin import endOfDirectory
 from codequick import support
 from resources.lib import logging
 from resources.lib import main
@@ -15,5 +17,6 @@ cc_patch.patch_label_prop()
 
 
 if __name__ == '__main__':
-    main.run()
+    if isinstance(main.run(), Exception):
+        endOfDirectory(int(sys.argv[1]), False)
     logging.shutdown_log()
