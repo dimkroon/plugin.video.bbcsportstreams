@@ -1,3 +1,6 @@
+v0.5.0
+	- added some red button streams
+
 v0.4.0
 	- added more streams.
 
