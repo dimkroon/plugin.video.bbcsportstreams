@@ -4,13 +4,12 @@
 
 import logging
 import os
+import json
 
-
-import xbmcplugin
+import xbmc
 
 from codequick import Route, Resolver, Listitem, Script, run
-from codequick.support import logger_id
-
+from codequick.support import logger_id, addon_data
 
 from resources.lib.errors import *
 
@@ -21,16 +20,29 @@ logger.critical('-------------------------------------')
 
 USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:101.0) Gecko/20100101 Firefox/101.0'
 
+vers_info = xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "method": "Application.GetProperties", '
+                                 '"params": {"properties": ["version"]}, "id": 1 }')
+vers_info = json.loads(vers_info)
+KODI_VERSION = vers_info['result']['version']['major']
+xbmc.log(f'[SPORT_STREAMS] Kodi version = {KODI_VERSION}.', xbmc.LOGERROR)
+
 
 @Route.register
 def root(_):
+    if KODI_VERSION > 20:
+        url_fmt = 'https://ve-cmaf-push-uk-live.cf.md.bbci.co.uk/x=4/i=urn:bbc:pips:service:uk_sport_stream_{:02d}/pc_hd_abr_v2.mpd'
+        handler = play_dash_live
+    else:
+        url_fmt = 'https://ve-hls-push-uk-live.cf.md.bbci.co.uk/x=4/i=urn:bbc:pips:service:uk_sport_stream_{:02d}/pc_hd_abr_v2.m3u8'
+        handler = play_hls_live
+
     for i in range(1, 15):
         stream_name = 'Sport stream {}'.format(i)
         yield Listitem.from_dict(
-            play_hls_live,
+            handler,
             stream_name,
             params={'channel': stream_name,
-                    'url': 'https://ve-hls-push-uk-live.akamaized.net/x=4/i=urn:bbc:pips:service:uk_sport_stream_{:02d}/pc_hd_abr_v2.m3u8'.format(i)})
+                    'url': url_fmt.format(i)})
 
     nums = ('one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine ', 'ten', 'eleven', 'twelve')
     for i in nums:
