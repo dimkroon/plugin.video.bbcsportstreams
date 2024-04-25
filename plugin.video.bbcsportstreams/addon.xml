@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.bbcsportstreams" name="BBC sport streams" version="0.5.0" provider-name="Dimitri Kroon">
+<addon id="plugin.video.bbcsportstreams" name="BBC sport streams" version="0.6.0" provider-name="Dimitri Kroon">
   <requires>
     <import addon="xbmc.python" version="3.0.0"/>
     <import addon="script.module.requests"/>
@@ -12,7 +12,7 @@
   <extension point="xbmc.addon.metadata">
     <platform>all</platform>
     <summary>Sport streams from iplayer. May break any time.</summary>
-    <description>Very simple addon to play Sport adn red button streams from iplayer.[CR]Hopefully just enough to watch the Masters snooker championships 2024</description>
+    <description>Very simple addon to play Sport adn red button streams from iplayer.[CR]Hopefully just enough to watch the Snooker World Championships 2024</description>
     <disclaimer lang="en">This add-on is not developed by the BBC and is no way affiliated with, or endorsed by the BBC.
     </disclaimer>
     <assets>
@@ -21,7 +21,9 @@
     </assets>
     <reuselanguageinvoker>false</reuselanguageinvoker>
     <news>
-      Added some red button streams
+	- Better support for Kodi 21
+	- 720p dash sport streams on Kodi 21.
+	- All streams are on sub domains of bbci.co.uk.
     </news>
   </extension>
 </addon>

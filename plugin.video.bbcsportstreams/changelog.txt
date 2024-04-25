@@ -1,3 +1,8 @@
+v0.6.0
+	- Better support for Kodi 21
+	- Use dash sport streams on Kodi 21, allowing 720p resolutions.
+	- All streams are on sub domains of bbci.co.uk.
+
 v0.5.0
 	- added some red button streams
 
