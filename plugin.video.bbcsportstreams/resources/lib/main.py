@@ -20,16 +20,27 @@ logger.critical('-------------------------------------')
 
 USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:101.0) Gecko/20100101 Firefox/101.0'
 
+vers_resp = xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "method": "Application.GetProperties", '
+                                 '"params": {"properties": ["version"]}, "id": 1 }')
+kodi_version = json.loads(vers_resp)['result']['version']['major']
+
 
 @Route.register
 def root(_):
+    if kodi_version > 20:
+        url_fmt = 'https://ve-cmaf-push-uk.live.fastly.md.bbci.co.uk/x=4/i=urn:bbc:pips:service:uk_sport_stream_{:02d}/pc_hd_abr_v2.mpd'
+        handler  = play_dash_live
+    else:
+        url_fmt = 'https://ve-hls-push-uk.live.cf.md.bbci.co.uk/x=4/i=urn:bbc:pips:service:uk_sport_stream_{:02d}/pc_hd_abr_v2.m3u8'
+        handler = play_hls_live
+
     for i in range(1, 15):
         stream_name = 'Sport stream {}'.format(i)
         yield Listitem.from_dict(
-            play_hls_live,
+            handler,
             stream_name,
             params={'channel': stream_name,
-                    'url': 'https://ve-hls-push-uk-live.akamaized.net/x=4/i=urn:bbc:pips:service:uk_sport_stream_{:02d}/pc_hd_abr_v2.m3u8'.format(i)})
+                    'url': url_fmt.format(i)})
 
     nums = ('one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine ', 'ten', 'eleven', 'twelve')
     for i in nums:
@@ -58,7 +69,10 @@ def create_stream_item(name, manifest_url, protocol='hls', resume_time=None):
     play_item.set_path(manifest_url, is_playable=True)
 
     play_item.listitem.setContentLookup(True)
-    # play_item.listitem.setMimeType('application/dash+xml')
+    if protocol == 'hls':
+        play_item.listitem.setMimeType('application/vnd.apple.mpegurl')
+    else:
+        play_item.listitem.setMimeType('application/dash+xml')
 
     play_item.property['inputstream'] = is_helper.inputstream_addon
     play_item.property['inputstream.adaptive.manifest_type'] = protocol
