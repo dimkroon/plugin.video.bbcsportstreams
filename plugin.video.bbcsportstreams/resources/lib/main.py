@@ -3,10 +3,9 @@
 #  This file is part of plugin.video.bbcsportstreams
 
 import logging
-import os
+import json
 
-
-import xbmcplugin
+import xbmc
 
 from codequick import Route, Resolver, Listitem, Script, run
 from codequick.support import logger_id
@@ -63,16 +62,17 @@ def create_stream_item(name, manifest_url, protocol='hls', resume_time=None):
 
     play_item.property['inputstream'] = is_helper.inputstream_addon
     play_item.property['inputstream.adaptive.manifest_type'] = protocol
-    # play_item.property['inputstream.adaptive.play_timeshift_buffer'] = 'true'
-    # play_item.property['inputstream.adaptive.manifest_update_parameter'] = 'full'
-    play_item.property['inputstream.adaptive.stream_headers'] = ''.join((
-            'User-Agent=',
-            USER_AGENT,
+    headers = ''.join((
+            'User-Agent=', USER_AGENT,
             '&Referer=https://emp.bbc.co.uk/&'
             'Origin=https://emp.bbc.co.uk&'
             'Sec-Fetch-Dest=empty&'
             'Sec-Fetch-Mode=cors&'
             'Sec-Fetch-Site=same-site&'))
+
+    play_item.property['inputstream.adaptive.stream_headers'] = headers
+    play_item.property['inputstream.adaptive.manifest_headers'] = headers
+
     return play_item
 
 
@@ -80,8 +80,6 @@ def create_stream_item(name, manifest_url, protocol='hls', resume_time=None):
 def play_hls_live(_, channel, url):
     logger.info('play live stream - channel=%s, url=%s', channel, url)
     list_item = create_stream_item(channel, url, resume_time='43200')
-    # if list_item:
-    #     list_item.property['inputstream.adaptive.manifest_update_parameter'] = 'full'
     return list_item
 
 
@@ -89,7 +87,5 @@ def play_hls_live(_, channel, url):
 def play_dash_live(_, channel, url):
     logger.info('play live dash stream - channel=%s, url=%s', channel, url)
     list_item = create_stream_item(channel, url, protocol='mpd', resume_time='43200')
-    # if list_item:
-    #     list_item.property['inputstream.adaptive.manifest_update_parameter'] = 'full'
     return list_item
 
