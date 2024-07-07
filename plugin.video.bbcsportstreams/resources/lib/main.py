@@ -20,21 +20,23 @@ logger.critical('-------------------------------------')
 
 USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:101.0) Gecko/20100101 Firefox/101.0'
 
-vers_resp = xbmc.executeJSONRPC('{ "jsonrpc": "2.0", "method": "Application.GetProperties", '
-                                 '"params": {"properties": ["version"]}, "id": 1 }')
-kodi_version = json.loads(vers_resp)['result']['version']['major']
+
+kodi_version = int(xbmc.getInfoLabel('System.BuildVersionShort').split('.')[0])
+logger.info('Kodi version major = %s', kodi_version)
 
 
 @Route.register
 def root(_):
     if kodi_version > 20:
-        url_fmt = 'https://ve-cmaf-push-uk.live.fastly.md.bbci.co.uk/x=4/i=urn:bbc:pips:service:uk_sport_stream_{:02d}/pc_hd_abr_v2.mpd'
-        handler  = play_dash_live
+        url_fmt = ('https://ve-cmaf-push-uk.live.fastly.md.bbci.co.uk/x=4/i=urn:bbc:pips:service:'
+                   'uk_sport_stream_{:02d}/pc_hd_abr_v2.mpd')
+        handler = play_dash_live
     else:
-        url_fmt = 'https://ve-hls-push-uk.live.cf.md.bbci.co.uk/x=4/i=urn:bbc:pips:service:uk_sport_stream_{:02d}/pc_hd_abr_v2.m3u8'
+        url_fmt = ('https://ve-hls-push-uk.live.cf.md.bbci.co.uk/x=4/i=urn:bbc:pips:service:'
+                   'uk_sport_stream_{:02d}/pc_hd_abr_v2.m3u8')
         handler = play_hls_live
 
-    for i in range(1, 15):
+    for i in range(1, 25):
         stream_name = 'Sport stream {}'.format(i)
         yield Listitem.from_dict(
             handler,
