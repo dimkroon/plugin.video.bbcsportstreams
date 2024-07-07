@@ -53,17 +53,6 @@ msgctxt "#30114"
 msgid "Log level"
 msgstr ""
 
-msgctxt "#30300"
-msgid "BBC account"
-msgstr ""
-
-msgctxt "#30301"
-msgid "User name"
-msgstr ""
-
-msgctxt "#30302"
-msgid "Password"
-msgstr ""
 
 
 # Script texts

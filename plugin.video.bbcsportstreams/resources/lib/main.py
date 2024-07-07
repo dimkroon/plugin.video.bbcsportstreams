@@ -1,10 +1,8 @@
 #  Copyright (c) 2022-2023 Dimitri Kroon.
 #  SPDX-License-Identifier: GPL-2.0-or-later
 #  This file is part of plugin.video.bbcsportstreams
-
-import logging
-import json
-
+import sys
+import inspect
 import xbmc
 
 from codequick import Route, Resolver, Listitem, Script, run
@@ -16,6 +14,7 @@ from resources.lib.errors import *
 
 logger = logging.getLogger(logger_id + '.main')
 logger.critical('-------------------------------------')
+from resources.lib import utils
 
 
 USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:101.0) Gecko/20100101 Firefox/101.0'
@@ -23,6 +22,7 @@ USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:101.0) Gecko/20100101 F
 
 kodi_version = int(xbmc.getInfoLabel('System.BuildVersionShort').split('.')[0])
 logger.info('Kodi version major = %s', kodi_version)
+utils.log_debug('Kodi version major = {}', kodi_version)
 
 
 @Route.register
@@ -58,12 +58,11 @@ def root(_):
 def create_stream_item(name, manifest_url, protocol='hls', resume_time=None):
     # noinspection PyImport,PyUnresolvedReferences
     import inputstreamhelper
-    logger.debug('dash manifest url: %s', manifest_url)
-
+    utils.log_debug('dash manifest url: {}', manifest_url)
 
     is_helper = inputstreamhelper.Helper(protocol)
     if not is_helper.check_inputstream():
-        logger.warning('No inputstream handler available for stream type %s', protocol)
+        utils.log_warning('No inputstream handler available for stream type {}', protocol)
         return
 
     play_item = Listitem()
@@ -94,14 +93,30 @@ def create_stream_item(name, manifest_url, protocol='hls', resume_time=None):
 
 @Resolver.register
 def play_hls_live(_, channel, url):
-    logger.info('play live stream - channel=%s, url=%s', channel, url)
     list_item = create_stream_item(channel, url, resume_time='43200')
     return list_item
 
 
 @Resolver.register
 def play_dash_live(_, channel, url):
-    logger.info('play live dash stream - channel=%s, url=%s', channel, url)
     list_item = create_stream_item(channel, url, protocol='mpd', resume_time='43200')
     return list_item
 
+
+def run():
+    try:
+        qs = sys.argv[2][1:]
+        params = dict(parse_qsl(qs))
+        func_name = params.pop('callb', None)
+        funcs = {name: member for name, member in inspect.getmembers(sys.modules[__name__])
+                 if (inspect.isfunction(member))}
+        callb = funcs.get(func_name)
+        if callb:
+            callb(**params)
+        else:
+            main_menu()
+        xbmcplugin.endOfDirectory(plugin_handle)
+    except:
+        import traceback
+        utils.log_error("Unhandled exception:\n{}", traceback.format_exc())
+        xbmcplugin.endOfDirectory(plugin_handle, False)

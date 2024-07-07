@@ -1,20 +1,14 @@
 #!/usr/bin/python
 
-from __future__ import unicode_literals
-
-import logging
-import os
-import sys
 import time
 from datetime import datetime
 
-import requests
+import xbmc
 from xbmcvfs import translatePath
 import xbmcaddon
 
-from codequick import Script
-from codequick.support import logger_id
-from . errors import *
+
+loglevel = xbmc.LOGDEBUG
 
 
 def create_addon_info(addon_id=None):
@@ -22,6 +16,8 @@ def create_addon_info(addon_id=None):
         addon = xbmcaddon.Addon(addon_id)
     else:
         addon = xbmcaddon.Addon()
+    global loglevel
+    loglevel = addon.getSettingInt('log-level')
     return {
         "name": addon.getAddonInfo("name"),
         "id": addon.getAddonInfo("id"),
@@ -34,16 +30,6 @@ def create_addon_info(addon_id=None):
 
 
 addon_info = create_addon_info()
-logger = logging.getLogger(logger_id + '.utils')
-
-
-def get_os():
-    # noinspection PyBroadException
-    try:
-        cur_os = os.environ.get("OS")
-    except:
-        cur_os = "unknown"
-    return cur_os
 
 
 def random_string(length):
@@ -249,3 +235,26 @@ def reformat_date(date_string, old_format, new_format):
     except TypeError:
         dt = datetime(*(time.strptime(date_string, old_format)[0:6]))
     return dt.strftime(new_format)
+
+
+def log(level, message, *args, **kwargs):
+    if level < loglevel:
+        return
+    xbmc_lvl = xbmc.LOGDEBUG
+    xbmc.log('[BBC Sportstreams] ' + message.format(*args, **kwargs), xbmc_lvl)
+
+
+def log_debug(msg, *args, **kwargs):
+    log(xbmc.LOGDEBUG, msg, *args, **kwargs)
+
+
+def log_info(msg, *args, **kwargs):
+    log(xbmc.LOGINFO, msg, *args, **kwargs)
+
+
+def log_warning(msg, *args, **kwargs):
+    log(xbmc.LOGWARNING, msg, *args, **kwargs)
+
+
+def log_error(msg, *args, **kwargs):
+    log(xbmc.LOGERROR, msg, *args, **kwargs)

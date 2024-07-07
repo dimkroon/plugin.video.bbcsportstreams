@@ -19,4 +19,3 @@ cc_patch.patch_label_prop()
 if __name__ == '__main__':
     if isinstance(main.run(), Exception):
         endOfDirectory(int(sys.argv[1]), False)
-    logging.shutdown_log()
