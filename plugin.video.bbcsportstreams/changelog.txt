@@ -1,3 +1,6 @@
+v0.7.0
+	- 24 sport streams.
+	- no longer depends on codequick.
 v0.6.0
 	- Better support for Kodi 21
 	- Use dash sport streams on Kodi 21, allowing 720p resolutions.
