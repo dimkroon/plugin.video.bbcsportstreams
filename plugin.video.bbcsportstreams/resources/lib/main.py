@@ -4,16 +4,10 @@
 import sys
 import inspect
 import xbmc
+import xbmcgui
+from urllib.parse import parse_qsl, urlencode
 
-from codequick import Route, Resolver, Listitem, Script, run
-from codequick.support import logger_id
-
-
-from resources.lib.errors import *
-
-
-logger = logging.getLogger(logger_id + '.main')
-logger.critical('-------------------------------------')
+import xbmcplugin
 from resources.lib import utils
 
 
@@ -21,12 +15,11 @@ USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:101.0) Gecko/20100101 F
 
 
 kodi_version = int(xbmc.getInfoLabel('System.BuildVersionShort').split('.')[0])
-logger.info('Kodi version major = %s', kodi_version)
 utils.log_debug('Kodi version major = {}', kodi_version)
+plugin_handle = int(sys.argv[1])
+# utils.log_warning("sys args = {}".format(sys.argv))
 
-
-@Route.register
-def root(_):
+def root():
     if kodi_version > 20:
         url_fmt = ('https://ve-cmaf-push-uk.live.fastly.md.bbci.co.uk/x=4/i=urn:bbc:pips:service:'
                    'uk_sport_stream_{:02d}/pc_hd_abr_v2.mpd')
@@ -38,25 +31,49 @@ def root(_):
 
     for i in range(1, 25):
         stream_name = 'Sport stream {}'.format(i)
-        yield Listitem.from_dict(
-            handler,
-            stream_name,
-            params={'channel': stream_name,
-                    'url': url_fmt.format(i)})
+        yield {
+            'callback': handler,
+            'channel': stream_name,
+            'params': {'channel': stream_name,
+                       'url': url_fmt.format(i)}
+        }
 
     nums = ('one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine ', 'ten', 'eleven', 'twelve')
     for i in nums:
         stream_name = 'Red button {}'.format(nums.index(i) + 1)
-        yield Listitem.from_dict(
-            play_dash_live,
-            stream_name,
-            params={'channel': stream_name,
-                    'url': ''.join(('https://vs-cmaf-pushb-uk.live.cf.md.bbci.co.uk/x=4/i=urn:bbc:pips:service:red_button_',
-                                   i, '/pc_hd_abr_v2.mpd'))
-                    })
+        yield {
+            'callback': play_dash_live,
+            'channel': stream_name,
+            'params': {
+                'channel': stream_name,
+                'url': ''.join(('https://vs-cmaf-pushb-uk.live.cf.md.bbci.co.uk/x=4/i=urn:bbc:pips:service:red_button_',
+                                i, '/pc_hd_abr_v2.mpd'))
+                }
+        }
+
+
+def build_url(callb, params):
+    params['callb'] = callb.__name__
+    qs = urlencode(params)
+    return 'plugin://{}?{}'.format(utils.addon_info['id'], qs)
+
+
+def main_menu():
+    xbmcplugin.setContent(plugin_handle, 'tvshows')
+    for item in root():
+        li = xbmcgui.ListItem(item['channel'])
+        li.setProperty('IsPlayable', 'true')
+        xbmcplugin.addDirectoryItem(
+            plugin_handle,
+            build_url(item['callback'], item['params']),
+            li,
+            isFolder=False,
+        )
+
 
 def create_stream_item(name, manifest_url, protocol='hls', resume_time=None):
     # noinspection PyImport,PyUnresolvedReferences
+
     import inputstreamhelper
     utils.log_debug('dash manifest url: {}', manifest_url)
 
@@ -65,42 +82,38 @@ def create_stream_item(name, manifest_url, protocol='hls', resume_time=None):
         utils.log_warning('No inputstream handler available for stream type {}', protocol)
         return
 
-    play_item = Listitem()
-    play_item.label = name
-    play_item.set_path(manifest_url, is_playable=True)
-
-    play_item.listitem.setContentLookup(True)
+    play_item = xbmcgui.ListItem(name, path=manifest_url)
+    play_item.setContentLookup(False)
     if protocol == 'hls':
-        play_item.listitem.setMimeType('application/vnd.apple.mpegurl')
+        play_item.setMimeType('application/vnd.apple.mpegurl')
     else:
-        play_item.listitem.setMimeType('application/dash+xml')
+        play_item.setMimeType('application/dash+xml')
 
-    play_item.property['inputstream'] = is_helper.inputstream_addon
-    play_item.property['inputstream.adaptive.manifest_type'] = protocol
     headers = ''.join((
-            'User-Agent=', USER_AGENT,
-            '&Referer=https://emp.bbc.co.uk/&'
-            'Origin=https://emp.bbc.co.uk&'
-            'Sec-Fetch-Dest=empty&'
-            'Sec-Fetch-Mode=cors&'
-            'Sec-Fetch-Site=same-site&'))
+        'User-Agent=', USER_AGENT,
+        '&Referer=https://emp.bbc.co.uk/&'
+        'Origin=https://emp.bbc.co.uk&'
+        'Sec-Fetch-Dest=empty&'
+        'Sec-Fetch-Mode=cors&'
+        'Sec-Fetch-Site=same-site&'))
 
-    play_item.property['inputstream.adaptive.stream_headers'] = headers
-    play_item.property['inputstream.adaptive.manifest_headers'] = headers
+    play_item.setProperties({
+        'inputstream': is_helper.inputstream_addon,
+        'inputstream.adaptive.manifest_type': protocol,
+        'inputstream.adaptive.stream_headers': headers,
+        'inputstream.adaptive.manifest_headers': headers})
 
-    return play_item
-
-
-@Resolver.register
-def play_hls_live(_, channel, url):
-    list_item = create_stream_item(channel, url, resume_time='43200')
-    return list_item
+    xbmcplugin.setResolvedUrl(plugin_handle, True, play_item)
 
 
-@Resolver.register
-def play_dash_live(_, channel, url):
-    list_item = create_stream_item(channel, url, protocol='mpd', resume_time='43200')
-    return list_item
+def play_hls_live(channel, url):
+    utils.log_info('play live stream - channel={}, url={}', channel, url)
+    create_stream_item(channel, url, resume_time='43200')
+
+
+def play_dash_live(channel, url):
+    utils.log_info('play live dash stream - channel={}, url={}', channel, url)
+    create_stream_item(channel, url, protocol='mpd', resume_time='43200')
 
 
 def run():
