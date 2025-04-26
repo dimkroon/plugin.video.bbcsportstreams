@@ -22,11 +22,11 @@ plugin_handle = int(sys.argv[1])
 def root():
     if kodi_version > 20:
         url_fmt = ('https://ve-cmaf-push-uk.live.fastly.md.bbci.co.uk/x=4/i=urn:bbc:pips:service:'
-                   'uk_sport_stream_{:02d}/pc_hd_abr_v2.mpd')
+                   'uk_bbc_stream_{:03d}/pc_hd_abr_v2.mpd')
         handler = play_dash_live
     else:
         url_fmt = ('https://ve-hls-push-uk.live.cf.md.bbci.co.uk/x=4/i=urn:bbc:pips:service:'
-                   'uk_sport_stream_{:02d}/pc_hd_abr_v2.m3u8')
+                   'uk_bbc_stream_{:03d}/pc_hd_abr_v2.m3u8')
         handler = play_hls_live
 
     for i in range(1, 25):
