@@ -29,16 +29,7 @@ def root():
                    'uk_bbc_stream_{:03d}/pc_hd_abr_v2.m3u8')
         handler = play_hls_live
 
-    for i in range(1, 25):
-        stream_name = 'Sport stream {}'.format(i)
-        yield {
-            'callback': handler,
-            'channel': stream_name,
-            'params': {'channel': stream_name,
-                       'url': url_fmt.format(i)}
-        }
-
-    nums = ('one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine ', 'ten', 'eleven', 'twelve')
+    nums = ('one', 'two')
     for i in nums:
         stream_name = 'Red button {}'.format(nums.index(i) + 1)
         yield {
@@ -49,6 +40,15 @@ def root():
                 'url': ''.join(('https://vs-cmaf-pushb-uk.live.cf.md.bbci.co.uk/x=4/i=urn:bbc:pips:service:red_button_',
                                 i, '/pc_hd_abr_v2.mpd'))
                 }
+        }
+
+    for i in range(1, 101):
+        stream_name = 'Sport stream {}'.format(i)
+        yield {
+            'callback': handler,
+            'channel': stream_name,
+            'params': {'channel': stream_name,
+                       'url': url_fmt.format(i)}
         }
 
 
