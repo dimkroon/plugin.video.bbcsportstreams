@@ -1,3 +1,7 @@
+v1.0.1
+	- Updated sport stream urls.
+	- Increased the number of sport streams to 100.
+    - Reduced the number of red button streams, since only one seems to be available at all times.
 v0.7.0
 	- 24 sport streams.
 	- no longer depends on codequick.
