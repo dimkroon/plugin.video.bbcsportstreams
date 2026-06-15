@@ -20,9 +20,13 @@ plugin_handle = int(sys.argv[1])
 # utils.log_warning("sys args = {}".format(sys.argv))
 
 def root():
+    hevc = False
+
+    mpd_suffix = 'hevc_iptv_mse_v0.mpd' if hevc else 'pc_hd_abr_v2.mpd'
+
     if kodi_version > 20:
-        url_fmt = ('https://ve-cmaf-push-uk.live.fastly.md.bbci.co.uk/x=4/i=urn:bbc:pips:service:'
-                   'uk_bbc_stream_{:03d}/pc_hd_abr_v2.mpd')
+        url_fmt = ('https://ve-cmaf-push-uk-live.akamaized.net/x=4/i=urn:bbc:pips:service:'
+                   'uk_bbc_stream_{:03d}/' + mpd_suffix)
         handler = play_dash_live
     else:
         url_fmt = ('https://ve-hls-push-uk.live.cf.md.bbci.co.uk/x=4/i=urn:bbc:pips:service:'
@@ -37,9 +41,8 @@ def root():
             'channel': stream_name,
             'params': {
                 'channel': stream_name,
-                'url': ''.join(('https://vs-cmaf-pushb-uk.live.cf.md.bbci.co.uk/x=4/i=urn:bbc:pips:service:red_button_',
-                                i, '/pc_hd_abr_v2.mpd'))
-                }
+                'url': f'https://vs-cmaf-pushb-uk.live.cf.md.bbci.co.uk/x=4/i=urn:bbc:pips:service:red_button_{i}/{mpd_suffix}'
+            }
         }
 
     for i in range(1, 101):
