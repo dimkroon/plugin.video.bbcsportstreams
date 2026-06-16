@@ -63,6 +63,7 @@ def main_menu():
     for item in root():
         li = xbmcgui.ListItem(item['channel'])
         li.setProperty('IsPlayable', 'true')
+        li.setInfo('video', {})     # required for the video to play on Matrix.
         xbmcplugin.addDirectoryItem(
             plugin_handle,
             build_url(item['callback'], item['params']),
