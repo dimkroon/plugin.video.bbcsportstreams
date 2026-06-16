@@ -29,8 +29,8 @@ def root():
                    'uk_bbc_stream_{:03d}/' + mpd_suffix)
         handler = play_dash_live
     else:
-        url_fmt = ('https://ve-hls-push-uk.live.cf.md.bbci.co.uk/x=4/i=urn:bbc:pips:service:'
-                   'uk_bbc_stream_{:03d}/pc_hd_abr_v2.m3u8')
+        url_fmt = ('https://ve-hls-push-uk-live.akamaized.net/x=4/i=urn:bbc:pips:service:'
+                   'uk_bbc_stream_{:03d}/iptv_hd_abr_v1.m3u8')
         handler = play_hls_live
 
     nums = ('one', 'two')
