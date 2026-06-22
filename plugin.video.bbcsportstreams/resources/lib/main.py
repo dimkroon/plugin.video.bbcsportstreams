@@ -63,7 +63,14 @@ def main_menu():
     for item in root():
         li = xbmcgui.ListItem(item['channel'])
         li.setProperty('IsPlayable', 'true')
-        li.setInfo('video', {})     # required for the video to play on Matrix.
+        if kodi_version < 20:
+            li.setProperties({'resumetime': '0',
+                              'totaltime': 3600})
+            li.setInfo('video', {'playcount': '0'})
+        else:
+            inf_tag = li.getVideoInfoTag()
+            inf_tag.setResumePoint(0)
+            inf_tag.setPlaycount(0)
         xbmcplugin.addDirectoryItem(
             plugin_handle,
             build_url(item['callback'], item['params']),
