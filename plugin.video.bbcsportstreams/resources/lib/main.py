@@ -1,4 +1,4 @@
-#  Copyright (c) 2022-2023 Dimitri Kroon.
+#  Copyright (c) 2022-2026 Dimitri Kroon.
 #  SPDX-License-Identifier: GPL-2.0-or-later
 #  This file is part of plugin.video.bbcsportstreams
 import json
@@ -24,7 +24,8 @@ utils.log_debug('Kodi version major = {}', kodi_version)
 plugin_handle = int(sys.argv[1])
 # utils.log_warning("sys args = {}".format(sys.argv))
 
-supports_mpd = kodi_version > 20
+supports_mpd = True  # kodi_version > 20
+
 
 def root():
     service_ids = []
@@ -143,10 +144,15 @@ def create_stream_item(name, manifest_url, resume_time=None):
 
     play_item = xbmcgui.ListItem(name, path=manifest_url)
     play_item.setContentLookup(False)
+    proxy_server = None
     if protocol == 'hls':
         play_item.setMimeType('application/vnd.apple.mpegurl')
     else:
         play_item.setMimeType('application/dash+xml')
+        if kodi_version < 22:
+            from resources.lib.proxy import run_proxy
+            proxy_address, proxy_server = run_proxy(manifest_url)
+            play_item.setPath(proxy_address)
 
     headers = ''.join((
         'User-Agent=', USER_AGENT,
@@ -161,6 +167,10 @@ def create_stream_item(name, manifest_url, resume_time=None):
         'inputstream.adaptive.manifest_type': protocol})
 
     xbmcplugin.setResolvedUrl(plugin_handle, True, play_item)
+    if proxy_server:
+        # Ensure the proxy stops, no matter what.
+        xbmc.Monitor().waitForAbort(10)
+        proxy_server.stop_server()
 
 
 def get_url(pid):

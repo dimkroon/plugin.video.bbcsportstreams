@@ -1,6 +1,11 @@
-#!/usr/bin/python
+#  Copyright (c) 2023-2026 Dimitri Kroon.
+#  SPDX-License-Identifier: GPL-2.0-or-later
+#  This file is part of plugin.video.bbcsportstreams
 
+from __future__ import annotations
+import time
 import xbmc
+from datetime import datetime
 from xbmcvfs import translatePath
 import xbmcaddon
 
@@ -55,3 +60,38 @@ def log_error(msg, *args, **kwargs):
 
 def is_hevc_enabled():
     return addon and addon.getSettingBool('hevc_enabled')
+
+
+def iso_duration_2_seconds(iso_str: str) -> int | None:
+    """Convert an ISO 8601 duration string into seconds.
+
+    A simple parser to match durations found in films and tv episodes.
+    Handles only hours, minutes and seconds.
+
+    """
+    if iso_str is None:
+        return None
+    try:
+        if len(iso_str) > 3:
+            import re
+            match = re.match(r'^PT(?:([\d.]+)H)?(?:([\d.]+)M)?(?:([\d.]+)S)?$', iso_str)
+            if match:
+                hours, minutes, seconds = match.groups(default=0)
+                return int(float(hours) * 3600 + float(minutes) * 60 + float(seconds))
+    except (ValueError, AttributeError, TypeError):
+        pass
+
+    log_warning("Invalid ISO8601 duration: '{}'", iso_str)
+    return None
+
+
+def seconds_2_iso_duration(secs: int | float):
+    hrs, secs = divmod(secs, 3600)
+    mins, secs = divmod(secs, 60)
+    iso_duration = f'PT{int(hrs)}H{int(mins)}M{secs:.4g}S'
+    return iso_duration
+
+
+def strptime(dt_str: str, format: str):
+    """A bug free alternative to `datetime.datetime.strptime(...)`"""
+    return datetime(*(time.strptime(dt_str, format)[0:6]))
