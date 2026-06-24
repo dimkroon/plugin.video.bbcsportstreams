@@ -1,11 +1,16 @@
 #  Copyright (c) 2022-2023 Dimitri Kroon.
 #  SPDX-License-Identifier: GPL-2.0-or-later
 #  This file is part of plugin.video.bbcsportstreams
+import json
 import sys
 import inspect
 import xbmc
 import xbmcgui
+
+from datetime import datetime, timezone
 from urllib.parse import parse_qsl, urlencode
+from urllib.request import Request, urlopen
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import xbmcplugin
 from resources.lib import utils
@@ -19,37 +24,83 @@ utils.log_debug('Kodi version major = {}', kodi_version)
 plugin_handle = int(sys.argv[1])
 # utils.log_warning("sys args = {}".format(sys.argv))
 
+supports_mpd = kodi_version > 20
+
 def root():
-    if kodi_version > 20:
-        url_fmt = ('https://ve-cmaf-push-uk.live.fastly.md.bbci.co.uk/x=4/i=urn:bbc:pips:service:'
-                   'uk_bbc_stream_{:03d}/pc_hd_abr_v2.mpd')
-        handler = play_dash_live
-    else:
-        url_fmt = ('https://ve-hls-push-uk.live.cf.md.bbci.co.uk/x=4/i=urn:bbc:pips:service:'
-                   'uk_bbc_stream_{:03d}/pc_hd_abr_v2.m3u8')
-        handler = play_hls_live
+    service_ids = []
 
-    nums = ('one', 'two')
-    for i in nums:
-        stream_name = 'Red button {}'.format(nums.index(i) + 1)
-        yield {
-            'callback': play_dash_live,
-            'channel': stream_name,
-            'params': {
-                'channel': stream_name,
-                'url': ''.join(('https://vs-cmaf-pushb-uk.live.cf.md.bbci.co.uk/x=4/i=urn:bbc:pips:service:red_button_',
-                                i, '/pc_hd_abr_v2.mpd'))
-                }
-        }
+    # red button
+    for i in ('one', 'two'):
+        service_ids.append(f'red_button_{i}')
 
+    # main streams
     for i in range(1, 101):
-        stream_name = 'Sport stream {}'.format(i)
-        yield {
-            'callback': handler,
-            'channel': stream_name,
-            'params': {'channel': stream_name,
-                       'url': url_fmt.format(i)}
+        service_ids.append(f'uk_bbc_stream_{i:03d}')
+
+
+    def worker(service_id):
+        try:
+            return process_service(service_id)
+        except:
+            return None
+
+    ordered = [None] * len(service_ids)
+
+    with ThreadPoolExecutor(max_workers=20) as executor:
+        future_map = {
+            executor.submit(worker, service_id): idx
+            for idx, service_id in enumerate(service_ids)
         }
+
+        for future in as_completed(future_map):
+            idx = future_map[future]
+            try:
+                ordered[idx] = future.result()
+            except:
+                ordered[idx] = None
+
+    for res in ordered:
+        if res:
+            for item in res:
+                yield item
+
+
+def fetch_data(service_id: str):
+    base_url = 'https://ess.api.bbci.co.uk/schedules'
+    params = urlencode({'serviceId': service_id})
+    url = f"{base_url}?{params}"
+
+    try:
+        with urlopen(url, timeout=1) as response:
+            raw_data = response.read().decode('utf-8')
+            return json.loads(raw_data)
+    except Exception:
+        return None
+
+
+def url_is_up(url):
+    try:
+        req = Request(url, method='HEAD')
+        with urlopen(req, timeout=1) as resp:
+            return resp.status == 200
+    except Exception:
+        return False
+
+
+def get_current_item(data):
+    if data:
+        def parse(ts):
+            return datetime.fromisoformat(ts.replace('Z', '+00:00'))
+
+        now = datetime.now(timezone.utc)
+        return next(
+            (
+                item for item in data['items']
+                if parse(item['published_time']['start']) <= now < parse(item['published_time']['end'])
+            ),
+            None
+        )
+    return None
 
 
 def build_url(callb, params):
@@ -63,6 +114,14 @@ def main_menu():
     for item in root():
         li = xbmcgui.ListItem(item['channel'])
         li.setProperty('IsPlayable', 'true')
+        if kodi_version < 20:
+            li.setProperties({'resumetime': '0',
+                              'totaltime': 3600})
+            li.setInfo('video', {'playcount': '0'})
+        else:
+            inf_tag = li.getVideoInfoTag()
+            inf_tag.setResumePoint(0)
+            inf_tag.setPlaycount(0)
         xbmcplugin.addDirectoryItem(
             plugin_handle,
             build_url(item['callback'], item['params']),
@@ -71,12 +130,12 @@ def main_menu():
         )
 
 
-def create_stream_item(name, manifest_url, protocol='hls', resume_time=None):
+def create_stream_item(name, manifest_url, resume_time=None):
     # noinspection PyImport,PyUnresolvedReferences
 
     import inputstreamhelper
     utils.log_debug('dash manifest url: {}', manifest_url)
-
+    protocol = 'mpd' if 'mpd' in manifest_url else 'hls'
     is_helper = inputstreamhelper.Helper(protocol)
     if not is_helper.check_inputstream():
         utils.log_warning('No inputstream handler available for stream type {}', protocol)
@@ -99,21 +158,85 @@ def create_stream_item(name, manifest_url, protocol='hls', resume_time=None):
 
     play_item.setProperties({
         'inputstream': is_helper.inputstream_addon,
-        'inputstream.adaptive.manifest_type': protocol,
-        'inputstream.adaptive.stream_headers': headers,
-        'inputstream.adaptive.manifest_headers': headers})
+        'inputstream.adaptive.manifest_type': protocol})
 
     xbmcplugin.setResolvedUrl(plugin_handle, True, play_item)
 
 
-def play_hls_live(channel, url):
-    utils.log_info('play live stream - channel={}, url={}', channel, url)
+def get_url(pid):
+    encoding = 'h265' if utils.is_hevc_enabled() else 'h264'
+    media_set = 'iptv-native-hd'
+
+    transfer_format = 'dash' if supports_mpd else 'hls'
+
+    base_url = 'https://open.live.bbc.co.uk/mediaselector/6/select/version/3.0/mediaset/{}/cvid/urn:bbc:pips:pid:{}/format/json/cors/1'
+
+    try:
+        with urlopen(base_url.format(media_set, pid), timeout=1) as response:
+            json_data = json.loads(response.read().decode("utf-8"))
+            for media in json_data['media']:
+                if media['encoding'] == encoding:
+                    for connection in media['connection']:
+                        if connection['protocol'] == 'https':
+                            if connection['transferFormat'] == transfer_format:
+                                url = connection['href']
+                                if url_is_up(url):
+                                    return url
+    except Exception:
+        pass
+    return None
+
+
+def process_service(service_id):
+    data = fetch_data(service_id)
+    item = get_current_item(data)
+    if not item:
+        return None
+
+    is_uk_bbc_stream = 'uk_bbc_stream_' in service_id
+    pid = item['version']['id'] if is_uk_bbc_stream else service_id
+
+    name = data['service']['name'] + ' - '
+    brand_title = item['brand']['title']
+    if brand_title == 'no_brand_title':
+        brand_title = ''
+    episode_title = item['episode']['title']
+    name += ': '.join(filter(None, [brand_title, episode_title]))
+
+    results = []
+
+    url = get_url(pid)
+    if url:
+        results.append({
+            'callback': play_live,
+            'channel': name,
+            'params': {
+                'channel': name,
+                'url': url
+            }
+        })
+
+    # Attempt to discover UHD streams
+    url_fmt_uhd = 'https://ve-uhd-push-uk.live.fastly.md.bbci.co.uk/x=4/i=urn:bbc:pips:service:{}/iptv_uhd_v1.mpd'
+    if supports_mpd and utils.is_hevc_enabled() and is_uk_bbc_stream:
+        url = url_fmt_uhd.format(service_id)
+        if url_is_up(url):
+            name = name + ' (UHD)'
+            results.append({
+                'callback': play_live,
+                'channel': name,
+                'params': {
+                    'channel': name,
+                    'url': url
+                }
+            })
+
+    return results
+
+
+def play_live(channel, url):
+    utils.log_info('play {}', channel)
     create_stream_item(channel, url, resume_time='43200')
-
-
-def play_dash_live(channel, url):
-    utils.log_info('play live dash stream - channel={}, url={}', channel, url)
-    create_stream_item(channel, url, protocol='mpd', resume_time='43200')
 
 
 def run():

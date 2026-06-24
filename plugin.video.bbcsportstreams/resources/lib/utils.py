@@ -4,11 +4,12 @@ import xbmc
 from xbmcvfs import translatePath
 import xbmcaddon
 
-
+addon = None
 loglevel = xbmc.LOGDEBUG
 
 
 def create_addon_info(addon_id=None):
+    global addon
     if addon_id:
         addon = xbmcaddon.Addon(addon_id)
     else:
@@ -50,3 +51,7 @@ def log_warning(msg, *args, **kwargs):
 
 def log_error(msg, *args, **kwargs):
     log(xbmc.LOGERROR, msg, *args, **kwargs)
+
+
+def is_hevc_enabled():
+    return addon and addon.getSettingBool('hevc_enabled')
