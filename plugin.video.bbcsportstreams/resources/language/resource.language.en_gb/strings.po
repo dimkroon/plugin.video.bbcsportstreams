@@ -53,7 +53,18 @@ msgctxt "#30114"
 msgid "Log level"
 msgstr ""
 
+msgctxt "#30115"
+msgid "Stream quality"
+msgstr ""
 
+msgctxt "#30116"
+msgid "Enable HEVC (H.265) to allow playback of FHD & UHD streams"
+msgstr ""
+
+msgctxt "#30117"
+msgid "May not work on all devices.\n"
+"When streams don't play, switch off to revert back H.264."
+msgstr ""
 
 # Script texts
 

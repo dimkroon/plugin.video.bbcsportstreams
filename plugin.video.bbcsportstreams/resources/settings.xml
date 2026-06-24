@@ -3,6 +3,13 @@
 	<section id="plugin.video.bbcsportstreams">
         <!-- General -->
         <category id="general" label="30100">
+            <group id="grp-strm-quality" label="30115">
+                <setting id="hevc_enabled" label="30116" type="boolean"  help="30117">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
+                </setting>
+            </group>
             <group id="grp0">
                 <setting id="log-level" label="30114" type="integer">
                     <level>3</level>
