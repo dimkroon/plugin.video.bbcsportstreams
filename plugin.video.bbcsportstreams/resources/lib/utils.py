@@ -9,18 +9,17 @@ from datetime import datetime
 from xbmcvfs import translatePath
 import xbmcaddon
 
-addon = None
+
 loglevel = xbmc.LOGDEBUG
 
 
 def create_addon_info(addon_id=None):
-    global addon
     if addon_id:
         addon = xbmcaddon.Addon(addon_id)
     else:
         addon = xbmcaddon.Addon()
-    global loglevel
-    loglevel = addon.getSettingInt('log-level')
+        global loglevel
+        loglevel = addon.getSettingInt('log-level')
     return {
         "name": addon.getAddonInfo("name"),
         "id": addon.getAddonInfo("id"),
@@ -28,7 +27,8 @@ def create_addon_info(addon_id=None):
         "language": addon.getLocalizedString,
         "version": addon.getAddonInfo("version"),
         "path": addon.getAddonInfo("path"),
-        "profile": translatePath(addon.getAddonInfo('profile'))
+        "profile": translatePath(addon.getAddonInfo('profile')),
+        "settings": addon.getSettings()
     }
 
 
@@ -59,7 +59,10 @@ def log_error(msg, *args, **kwargs):
 
 
 def is_hevc_enabled():
-    return addon and addon.getSettingBool('hevc_enabled')
+    has_hevc = getattr(is_hevc_enabled, '_has_hevc', None)
+    if has_hevc is None:
+        has_hevc = is_hevc_enabled._has_hevc = addon_info['settings'].getBool('hevc_enabled')
+    return has_hevc
 
 
 def iso_duration_2_seconds(iso_str: str) -> int | None:

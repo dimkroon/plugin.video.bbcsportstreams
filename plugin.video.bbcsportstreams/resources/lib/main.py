@@ -29,7 +29,7 @@ supports_mpd = True  # kodi_version > 20
 
 
 
-@file_cache('channelcache.json', max_age=600)
+@file_cache('channelcache.json', max_age=600, check_key=utils.is_hevc_enabled())
 def root():
     service_ids = ['red_button_one']
 
@@ -255,7 +255,7 @@ def run():
             callb(**params)
         else:
             main_menu()
-        xbmcplugin.endOfDirectory(plugin_handle)
+        xbmcplugin.endOfDirectory(plugin_handle, cacheToDisc=False)
     except:
         import traceback
         utils.log_error("Unhandled exception:\n{}", traceback.format_exc())
