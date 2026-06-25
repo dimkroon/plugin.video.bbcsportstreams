@@ -14,6 +14,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import xbmcplugin
 from resources.lib import utils
+from resources.lib.cache import file_cache
 
 
 USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:101.0) Gecko/20100101 Firefox/101.0'
@@ -27,6 +28,8 @@ plugin_handle = int(sys.argv[1])
 supports_mpd = True  # kodi_version > 20
 
 
+
+@file_cache('channelcache.json', max_age=600)
 def root():
     service_ids = ['red_button_one']
 
@@ -56,9 +59,8 @@ def root():
             except:
                 ordered[idx] = None
 
-    for res in ordered:
-        if res:
-            yield res
+    return [res for res in ordered if res]
+
 
 
 def fetch_data(service_id: str):
@@ -100,7 +102,10 @@ def get_current_item(data):
 
 
 def build_url(callb, params):
-    params['callb'] = callb.__name__
+    if isinstance(callb, str):
+        params['callb'] = callb
+    else:
+        params['callb'] = callb.__name__
     qs = urlencode(params)
     return 'plugin://{}?{}'.format(utils.addon_info['id'], qs)
 
@@ -210,7 +215,7 @@ def process_service(service_id):
     url = get_url(pid)
     if url:
         return {
-            'callback': play_live,
+            'callback': 'play_live',
             'channel': name,
             'params': {
                 'channel': name,
@@ -223,7 +228,7 @@ def process_service(service_id):
         url = url_fmt_uhd.format(service_id)
         name = name + ' (UHD)'
         return{
-            'callback': play_live,
+            'callback': 'play_live',
             'channel': name,
             'params': {
                 'channel': name,
