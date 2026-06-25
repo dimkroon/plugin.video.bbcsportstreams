@@ -28,11 +28,7 @@ supports_mpd = True  # kodi_version > 20
 
 
 def root():
-    service_ids = []
-
-    # red button
-    for i in ('one', 'two'):
-        service_ids.append(f'red_button_{i}')
+    service_ids = ['red_button_one']
 
     # main streams
     for i in range(1, 101):
@@ -62,8 +58,7 @@ def root():
 
     for res in ordered:
         if res:
-            for item in res:
-                yield item
+            yield res
 
 
 def fetch_data(service_id: str):
@@ -190,8 +185,7 @@ def get_url(pid):
                         if connection['protocol'] == 'https':
                             if connection['transferFormat'] == transfer_format:
                                 url = connection['href']
-                                if url_is_up(url):
-                                    return url
+                                return url
     except Exception:
         pass
     return None
@@ -213,35 +207,30 @@ def process_service(service_id):
     episode_title = item['episode']['title']
     name += ': '.join(filter(None, [brand_title, episode_title]))
 
-    results = []
-
     url = get_url(pid)
     if url:
-        results.append({
+        return {
             'callback': play_live,
             'channel': name,
             'params': {
                 'channel': name,
                 'url': url
             }
-        })
-
-    # Attempt to discover UHD streams
-    url_fmt_uhd = 'https://ve-uhd-push-uk.live.fastly.md.bbci.co.uk/x=4/i=urn:bbc:pips:service:{}/iptv_uhd_v1.mpd'
-    if supports_mpd and utils.is_hevc_enabled() and is_uk_bbc_stream:
+        }
+    elif supports_mpd and utils.is_hevc_enabled() and is_uk_bbc_stream:
+        # If no iptv-native-hd stream selector is available, the stream must be UHD
+        url_fmt_uhd = 'https://ve-uhd-push-uk.live.fastly.md.bbci.co.uk/x=4/i=urn:bbc:pips:service:{}/iptv_uhd_v1.mpd'
         url = url_fmt_uhd.format(service_id)
-        if url_is_up(url):
-            name = name + ' (UHD)'
-            results.append({
-                'callback': play_live,
+        name = name + ' (UHD)'
+        return{
+            'callback': play_live,
+            'channel': name,
+            'params': {
                 'channel': name,
-                'params': {
-                    'channel': name,
-                    'url': url
-                }
-            })
-
-    return results
+                'url': url
+            }
+        }
+    return None
 
 
 def play_live(channel, url):
