@@ -174,25 +174,30 @@ def create_stream_item(name, manifest_url, resume_time=None):
 
 
 def get_url(pid):
-    encoding = 'h265' if utils.is_hevc_enabled() else 'h264'
-    media_set = 'iptv-native-hd'
+    hevc_enabled = utils.is_hevc_enabled()
+    encoding = 'h265' if hevc_enabled else 'h264'
+    media_sets = ['iptv-native-hd']
+
+    if supports_mpd and hevc_enabled:
+        media_sets.append('iptv-uhd')
 
     transfer_format = 'dash' if supports_mpd else 'hls'
 
     base_url = 'https://open.live.bbc.co.uk/mediaselector/6/select/version/3.0/mediaset/{}/cvid/urn:bbc:pips:pid:{}/format/json/cors/1'
 
-    try:
-        with urlopen(base_url.format(media_set, pid), timeout=1) as response:
-            json_data = json.loads(response.read().decode("utf-8"))
-            for media in json_data['media']:
-                if media['encoding'] == encoding:
-                    for connection in media['connection']:
-                        if connection['protocol'] == 'https':
-                            if connection['transferFormat'] == transfer_format:
-                                url = connection['href']
-                                return url
-    except Exception:
-        pass
+    for media_set in media_sets:
+        try:
+            with urlopen(base_url.format(media_set, pid), timeout=1) as response:
+                json_data = json.loads(response.read().decode("utf-8"))
+                for media in json_data['media']:
+                    if media['encoding'] == encoding:
+                        for connection in media['connection']:
+                            if connection['protocol'] == 'https':
+                                if connection['transferFormat'] == transfer_format:
+                                    url = connection['href']
+                                    return url
+        except Exception:
+            pass
     return None
 
 
@@ -214,20 +219,10 @@ def process_service(service_id):
 
     url = get_url(pid)
     if url:
+        filename = url.rsplit("/", 1)[-1]
+        if filename and "uhd" in filename:
+            name += ' (UHD)'
         return {
-            'callback': 'play_live',
-            'channel': name,
-            'params': {
-                'channel': name,
-                'url': url
-            }
-        }
-    elif supports_mpd and utils.is_hevc_enabled() and is_uk_bbc_stream:
-        # If no iptv-native-hd stream selector is available, the stream must be UHD
-        url_fmt_uhd = 'https://ve-uhd-push-uk.live.fastly.md.bbci.co.uk/x=4/i=urn:bbc:pips:service:{}/iptv_uhd_v1.mpd'
-        url = url_fmt_uhd.format(service_id)
-        name = name + ' (UHD)'
-        return{
             'callback': 'play_live',
             'channel': name,
             'params': {
