@@ -1,3 +1,7 @@
+v2.0.0
+    - Only display active streams and optionally enable 1080p and 4k (thanks @caspermcfadden95)
+    - Fix dash streams on Kodi 19 - 21 (Matrix, Nexus, Omega)
+    - Some other improvements and fixes.
 v1.0.1
 	- Updated sport stream urls.
 	- Increased the number of sport streams to 100.
