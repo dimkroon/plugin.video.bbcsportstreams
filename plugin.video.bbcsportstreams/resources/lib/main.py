@@ -28,8 +28,7 @@ plugin_handle = int(sys.argv[1])
 supports_mpd = True  # kodi_version > 20
 
 
-
-@file_cache('channelcache.json', max_age=600, check_key=utils.is_hevc_enabled())
+@file_cache('channelcache.json', max_age=300, check_key=utils.is_hevc_enabled())
 def root():
     service_ids = ['red_button_one']
 
