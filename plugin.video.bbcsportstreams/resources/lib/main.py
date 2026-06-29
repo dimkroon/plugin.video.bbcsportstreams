@@ -110,7 +110,7 @@ def build_url(callb, params):
 
 
 def main_menu():
-    xbmcplugin.setContent(plugin_handle, 'tvshows')
+    xbmcplugin.setContent(plugin_handle, 'episodes')
     for item in root():
         li = xbmcgui.ListItem(item['title'])
         li.setProperty('IsPlayable', 'true')
