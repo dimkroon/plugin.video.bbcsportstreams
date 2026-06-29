@@ -112,16 +112,18 @@ def build_url(callb, params):
 def main_menu():
     xbmcplugin.setContent(plugin_handle, 'tvshows')
     for item in root():
-        li = xbmcgui.ListItem(item['channel'])
+        li = xbmcgui.ListItem(item['title'])
         li.setProperty('IsPlayable', 'true')
         if kodi_version < 20:
             li.setProperties({'resumetime': '0',
                               'totaltime': 3600})
-            li.setInfo('video', {'playcount': '0'})
+            li.setInfo('video', {'playcount': '0',
+                                 'plot': item['description']})
         else:
             inf_tag = li.getVideoInfoTag()
             inf_tag.setResumePoint(0)
             inf_tag.setPlaycount(0)
+            inf_tag.setPlot(item['description'])
         xbmcplugin.addDirectoryItem(
             plugin_handle,
             build_url(item['callback'], item['params']),
@@ -209,23 +211,24 @@ def process_service(service_id):
     is_uk_bbc_stream = 'uk_bbc_stream_' in service_id
     pid = item['version']['id'] if is_uk_bbc_stream else service_id
 
-    name = data['service']['name'] + ' - '
+    chan_name = data['service']['name']
     brand_title = item['brand']['title']
     if brand_title == 'no_brand_title':
         brand_title = ''
     episode_title = item['episode']['title']
-    name += ': '.join(filter(None, [brand_title, episode_title]))
+    title = ': '.join(filter(None, [brand_title, episode_title]))
 
     url = get_url(pid)
     if url:
         filename = url.rsplit("/", 1)[-1]
-        if filename and "uhd" in filename:
-            name += ' (UHD)'
+        is_uhd = "uhd" in filename
+
         return {
             'callback': 'play_live',
-            'channel': name,
+            'description': '\n'.join(filter(None, (chan_name, 'UHD' if is_uhd else None, brand_title, episode_title))),
+            'title': title + ' (UHD)' if is_uhd else title,
             'params': {
-                'channel': name,
+                'channel': chan_name,
                 'url': url
             }
         }
