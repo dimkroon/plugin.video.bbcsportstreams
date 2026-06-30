@@ -1,3 +1,7 @@
+v 2.1.1
+    - Fixed: add-on failed to open on Matrix.
+    - Allow sorting on title.
+
 v2.1.0
     - Improve item titles and add info.
     - Use Displaytype 'wide list' by default (on Kodi's default skin at least).

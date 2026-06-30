@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.bbcsportstreams" name="BBC sport streams" version="2.1.0" provider-name="Dimitri Kroon">
+<addon id="plugin.video.bbcsportstreams" name="BBC sport streams" version="2.1.1" provider-name="Dimitri Kroon">
   <requires>
     <import addon="xbmc.python" version="3.0.0"/>
     <import addon="script.module.requests"/>
@@ -20,6 +20,10 @@
     </assets>
     <reuselanguageinvoker>false</reuselanguageinvoker>
     <news>
+[B]v 2.1.1[/B]
+- Fixed: add-on failed to open on Matrix.
+- Allow sorting on title.
+
 [B]v 2.1.0[/B]
 - Improve item titles and add info.
 - Use Displaytype 'wide list' by default (on Kodi's default skin).
