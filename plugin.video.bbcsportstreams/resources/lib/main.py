@@ -178,13 +178,18 @@ def create_stream_item(name, manifest_url, resume_time=None):
         proxy_server.stop_server()
 
 
-def get_url(pid):
+def get_url(pid, strm_idx):
     hevc_enabled = utils.is_hevc_enabled()
     encoding = 'h265' if hevc_enabled else 'h264'
     media_sets = ['iptv-native-hd']
 
     if supports_mpd and hevc_enabled:
-        media_sets.append('iptv-uhd')
+        # Sometimes the HD and UHD streams have the same pid.
+        # If the stream is between 40 and 50 try UHD first.
+        if 40 < strm_idx < 50:
+            media_sets.insert(0, 'iptv-uhd')
+        else:
+            media_sets.append('iptv-uhd')
 
     transfer_format = 'dash' if supports_mpd else 'hls'
 
@@ -222,7 +227,7 @@ def process_service(service_id):
     episode_title = item['episode']['title']
     title = ': '.join(filter(None, [brand_title, episode_title]))
 
-    url = get_url(pid)
+    url = get_url(pid, int(service_id[-3:] if is_uk_bbc_stream else 0))
     if url:
         filename = url.rsplit("/", 1)[-1]
         is_uhd = "uhd" in filename
