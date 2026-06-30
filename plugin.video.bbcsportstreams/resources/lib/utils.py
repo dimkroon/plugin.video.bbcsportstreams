@@ -28,7 +28,6 @@ def create_addon_info(addon_id=None):
         "version": addon.getAddonInfo("version"),
         "path": addon.getAddonInfo("path"),
         "profile": translatePath(addon.getAddonInfo('profile')),
-        "settings": addon.getSettings()
     }
 
 
@@ -61,7 +60,7 @@ def log_error(msg, *args, **kwargs):
 def is_hevc_enabled():
     has_hevc = getattr(is_hevc_enabled, '_has_hevc', None)
     if has_hevc is None:
-        has_hevc = is_hevc_enabled._has_hevc = addon_info['settings'].getBool('hevc_enabled')
+        has_hevc = is_hevc_enabled._has_hevc = addon_info['addon'].getSettingBool('hevc_enabled')
     return has_hevc
 
 
