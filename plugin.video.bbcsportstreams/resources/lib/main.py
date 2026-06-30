@@ -113,6 +113,8 @@ def build_url(callb, params):
 
 def main_menu():
     xbmcplugin.setContent(plugin_handle, 'episodes')
+    xbmcplugin.addSortMethod(plugin_handle, xbmcplugin.SORT_METHOD_UNSORTED)
+    xbmcplugin.addSortMethod(plugin_handle, xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
     for item in root():
         li = xbmcgui.ListItem(item['title'])
         li.setProperty('IsPlayable', 'true')
