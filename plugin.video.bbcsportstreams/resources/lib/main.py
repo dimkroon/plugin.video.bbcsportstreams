@@ -181,11 +181,10 @@ def create_stream_item(name, manifest_url, resume_time=None):
 def get_url(pid, service_id):
     hevc_enabled = utils.is_hevc_enabled()
     encoding = 'h265' if hevc_enabled else 'h264'
-    media_sets = []
+    media_sets = ['iptv-native-hd']
 
     if supports_mpd and hevc_enabled:
         media_sets.append('iptv-uhd')
-    media_sets.append('iptv-native-hd')
 
     transfer_format = 'dash' if supports_mpd else 'hls'
 
