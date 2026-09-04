@@ -10,7 +10,7 @@ import xbmcgui
 from datetime import datetime, timezone
 from urllib.parse import parse_qsl, urlencode
 from urllib.request import Request, urlopen
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent import futures
 
 import xbmcplugin
 from resources.lib import utils
@@ -38,33 +38,15 @@ def root():
     for i in range(1, 101):
         service_ids.append(f'uk_bbc_stream_{i:03d}')
 
+    with futures.ThreadPoolExecutor(max_workers=20) as executor:
+        future_results = [executor.submit(process_service, service_id) for service_id in service_ids]
+        futures.wait(future_results)
 
-    def worker(service_id):
-        try:
-            return process_service(service_id)
-        except:
-            return None
-
-    ordered = [None] * len(service_ids)
-
-    with ThreadPoolExecutor(max_workers=20) as executor:
-        future_map = {
-            executor.submit(worker, service_id): idx
-            for idx, service_id in enumerate(service_ids)
-        }
-
-        for future in as_completed(future_map):
-            idx = future_map[future]
-            try:
-                ordered[idx] = future.result()
-            except:
-                ordered[idx] = None
-
-    return [res for res in ordered if res]
+    results = (res.result() for res in future_results)
+    return [res for res in results if res]
 
 
-
-def fetch_data(service_id: str):
+def fetch_schedule(service_id: str):
     base_url = 'https://ess.api.bbci.co.uk/schedules'
     params = urlencode({'serviceId': service_id})
     url = f"{base_url}?{params}"
@@ -86,15 +68,15 @@ def url_is_up(url):
         return False
 
 
-def get_current_item(data):
-    if data:
+def get_current_programme(schedule_data):
+    if schedule_data:
         def parse(ts):
             return datetime.fromisoformat(ts.replace('Z', '+00:00'))
 
         now = datetime.now(timezone.utc)
         return next(
             (
-                item for item in data['items']
+                item for item in schedule_data['items']
                 if parse(item['published_time']['start']) <= now < parse(item['published_time']['end'])
             ),
             None
@@ -102,7 +84,7 @@ def get_current_item(data):
     return None
 
 
-def build_url(callb, params):
+def callback_url(callb, params):
     if isinstance(callb, str):
         params['callb'] = callb
     else:
@@ -120,7 +102,7 @@ def main_menu():
         li.setProperty('IsPlayable', 'true')
         if kodi_version < 20:
             li.setProperties({'resumetime': '0',
-                              'totaltime': 3600})
+                              'totaltime': '3600'})
             li.setInfo('video', {'playcount': '0',
                                  'plot': item['description']})
         else:
@@ -130,7 +112,7 @@ def main_menu():
             inf_tag.setPlot(item['description'])
         xbmcplugin.addDirectoryItem(
             plugin_handle,
-            build_url(item['callback'], item['params']),
+            callback_url(item['callback'], item['params']),
             li,
             isFolder=False,
         )
@@ -159,14 +141,6 @@ def create_stream_item(name, manifest_url, resume_time=None):
             proxy_address, proxy_server = run_proxy(manifest_url)
             play_item.setPath(proxy_address)
 
-    headers = ''.join((
-        'User-Agent=', USER_AGENT,
-        '&Referer=https://emp.bbc.co.uk/&'
-        'Origin=https://emp.bbc.co.uk&'
-        'Sec-Fetch-Dest=empty&'
-        'Sec-Fetch-Mode=cors&'
-        'Sec-Fetch-Site=same-site&'))
-
     play_item.setProperties({
         'inputstream': is_helper.inputstream_addon,
         'inputstream.adaptive.manifest_type': protocol})
@@ -178,7 +152,7 @@ def create_stream_item(name, manifest_url, resume_time=None):
         proxy_server.stop_server()
 
 
-def get_url(pid, strm_idx):
+def get_manifest_url(pid, strm_idx):
     hevc_enabled = utils.is_hevc_enabled()
     encoding = 'h265' if hevc_enabled else 'h264'
     media_sets = ['iptv-native-hd']
@@ -212,22 +186,22 @@ def get_url(pid, strm_idx):
 
 
 def process_service(service_id):
-    data = fetch_data(service_id)
-    item = get_current_item(data)
-    if not item:
+    schedule_data = fetch_schedule(service_id)
+    programme_data = get_current_programme(schedule_data)
+    if not programme_data:
         return None
 
     is_uk_bbc_stream = 'uk_bbc_stream_' in service_id
-    pid = item['version']['id'] if is_uk_bbc_stream else service_id
+    pid = programme_data['version']['id'] if is_uk_bbc_stream else service_id
 
-    chan_name = data['service']['name']
-    brand_title = item['brand']['title']
+    chan_name = schedule_data['service']['name']
+    brand_title = programme_data['brand']['title']
     if brand_title == 'no_brand_title':
         brand_title = ''
-    episode_title = item['episode']['title']
+    episode_title = programme_data['episode']['title']
     title = ': '.join(filter(None, [brand_title, episode_title]))
 
-    url = get_url(pid, int(service_id[-3:] if is_uk_bbc_stream else 0))
+    url = get_manifest_url(pid, int(service_id[-3:] if is_uk_bbc_stream else 0))
     if url:
         filename = url.rsplit("/", 1)[-1]
         is_uhd = "uhd" in filename
@@ -262,7 +236,8 @@ def run():
         else:
             main_menu()
         xbmcplugin.endOfDirectory(plugin_handle, cacheToDisc=False)
-    except:
+    except Exception as err:
         import traceback
         utils.log_error("Unhandled exception:\n{}", traceback.format_exc())
+        xbmcgui.Dialog().notification('BBC Sport Streams', str(err), xbmcgui.NOTIFICATION_ERROR)
         xbmcplugin.endOfDirectory(plugin_handle, False)
