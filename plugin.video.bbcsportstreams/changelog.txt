@@ -1,3 +1,7 @@
+v 2.2.0
+    - Display current and future programmes in the description with the stream start time in the user's timezone.
+    - Improved error handling and notifications.
+    - Fix: UHD streams were played in HD when the stream was available in both resolutions.
 v 2.1.1
     - Fixed: add-on failed to open on Matrix.
     - Allow sorting on title.

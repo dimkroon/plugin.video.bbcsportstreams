@@ -12,7 +12,7 @@
     <platform>all</platform>
     <summary>Special event streams from iplayer. May break any time.</summary>
     <description>Addon to play special events and red button streams from iplayer.</description>
-    <disclaimer lang="en">This add-on is not developed by the BBC and is no way affiliated with, or endorsed by the BBC.
+    <disclaimer lang="en">This add-on is not developed by the BBC and is in no way affiliated with, or endorsed by the BBC.
     </disclaimer>
     <assets>
       <icon>resources/icon.png</icon>
@@ -20,18 +20,10 @@
     </assets>
     <reuselanguageinvoker>false</reuselanguageinvoker>
     <news>
-[B]v 2.1.1[/B]
-- Fixed: add-on failed to open on Matrix.
-- Allow sorting on title.
-
-[B]v 2.1.0[/B]
-- Improve item titles and add info.
-- Use Displaytype 'wide list' by default (on Kodi's default skin).
-
-[B]v 2.0.0[/B]
-- Only display active streams and optionally enable 1080p and 4k (thanks @caspermcfadden95)
-- Fix dash streams on Kodi 19 - 21 (Matrix, Nexus, Omega)
-- Some other improvements and fixes.
+[B]v 2.2.0[/B]
+— Display current and future programmes in the description with the stream start time in the user's timezone.
+— Improved error handling and notifications.
+— Fix: UHD streams were played in HD when the stream was available in both resolutions.
     </news>
   </extension>
 </addon>
