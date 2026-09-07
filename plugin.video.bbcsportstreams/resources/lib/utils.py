@@ -4,10 +4,21 @@
 
 from __future__ import annotations
 import time
+import json
+import importlib
+
 import xbmc
 from datetime import datetime
 from xbmcvfs import translatePath
 import xbmcaddon
+
+try:
+    # noinspection compatibility
+    from zoneinfo import ZoneInfo
+except ImportError:
+    # python < 3.9
+    # noinspection unresolved-references
+    from backports.zoneinfo import ZoneInfo
 
 
 loglevel = xbmc.LOGDEBUG
@@ -97,3 +108,36 @@ def seconds_2_iso_duration(secs: int | float):
 def strptime(dt_str: str, format: str):
     """A bug free alternative to `datetime.datetime.strptime(...)`"""
     return datetime(*(time.strptime(dt_str, format)[0:6]))
+
+
+def get_system_setting(setting_id):
+    json_str = ('{{"jsonrpc": "2.0", "method": "Settings.GetSettingValue", "params": ["{}"], "id": 1}}'.
+                format(setting_id))
+    response = xbmc.executeJSONRPC(json_str)
+    data = json.loads(response)
+    try:
+        return data['result']['value']
+    except KeyError:
+        msg = data.get('message') or "Failed to get setting"
+        log("get_system_setting failed for setting_id '%s': '%s'", setting_id, msg)
+        raise ValueError('system setting error: {}'.format(msg))
+
+
+def local_tz():
+    """Return the local time zone from Kodi's settings as a ZoneInfo object.
+    Revert to the timezone provided by tzlocal on older Kodi versions, which
+    in turn reverts to UTC if the OS provides none.
+
+    """
+
+    ltz = getattr(local_tz, '_ltz_', None)
+
+    if ltz is None:
+        try:
+            local_tz._ltz_ = ltz = ZoneInfo(get_system_setting('locale.timezone'))
+        except (TypeError, ValueError):
+            # To be Matrix compatible
+            log_debug("No Kodi timezone setting found, falling back to tzlocal")
+            tzlocal = importlib.import_module('tzlocal')
+            local_tz._ltz_ = ltz = tzlocal.get_localzone()
+    return ltz

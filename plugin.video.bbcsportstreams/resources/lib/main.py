@@ -35,13 +35,14 @@ supports_mpd = True  # kodi_version > 20
             check_key=str(utils.is_hevc_enabled()) + utils.addon_info['version'])
 def root():
     service_ids = ['red_button_one']
+    local_tz = utils.local_tz()
 
     # main streams
     for i in range(1, 101):
         service_ids.append(f'uk_bbc_stream_{i:03d}')
 
     with futures.ThreadPoolExecutor(max_workers=20) as executor:
-        future_results = [executor.submit(process_service, service_id) for service_id in service_ids]
+        future_results = [executor.submit(process_service, service_id, local_tz) for service_id in service_ids]
         futures.wait(future_results)
 
     results = (res.result() for res in future_results)
@@ -55,7 +56,7 @@ def fetch_schedule(service_id: str):
     if resp.status_code == 200:
         return json.loads(resp.content)
     else:
-        return None
+        return {}
 
 
 def url_is_up(url):
@@ -63,20 +64,21 @@ def url_is_up(url):
     return resp.status_code == 200
 
 
-def get_current_programme(schedule_data):
-    if schedule_data:
-        def parse(ts):
-            return datetime.fromisoformat(ts.replace('Z', '+00:00'))
+def current_programmes(schedule_data):
+    if not schedule_data:
+        return
 
-        now = datetime.now(timezone.utc)
-        return next(
-            (
-                item for item in schedule_data['items']
-                if parse(item['published_time']['start']) <= now < parse(item['published_time']['end'])
-            ),
-            None
-        )
-    return None
+    now = datetime.now(timezone.utc)
+
+    for pgm in schedule_data['items']:
+        publish_time = pgm['published_time']
+        end_t = datetime.fromisoformat(publish_time['end'].replace('Z', '+00:00'))
+        if end_t > now:
+            start_t = datetime.fromisoformat(publish_time['start'].replace('Z', '+00:00'))
+            pgm['published_time'] = {'start': start_t, 'end': end_t}
+            if pgm['brand']['title'] == 'no_brand_title':
+                pgm['brand']['title'] = ''
+            yield pgm
 
 
 def callback_url(callb, params):
@@ -189,37 +191,48 @@ def get_manifest_url(pid, strm_idx):
     return None
 
 
-def process_service(service_id):
+def process_service(service_id, local_timezone):
     schedule_data = fetch_schedule(service_id)
-    programme_data = get_current_programme(schedule_data)
+    programme_data = list(current_programmes(schedule_data))
     if not programme_data:
         return None
 
+    cur_pgm = programme_data[0]
     is_uk_bbc_stream = 'uk_bbc_stream_' in service_id
-    pid = programme_data['version']['id'] if is_uk_bbc_stream else service_id
+    pid = cur_pgm['version']['id'] if is_uk_bbc_stream else service_id
 
     chan_name = schedule_data['service']['name']
-    brand_title = programme_data['brand']['title']
-    if brand_title == 'no_brand_title':
-        brand_title = ''
-    episode_title = programme_data['episode']['title']
+    brand_title = cur_pgm['brand']['title']
+    episode_title = cur_pgm['episode']['title']
     title = ': '.join(filter(None, [brand_title, episode_title]))
 
     url = get_manifest_url(pid, int(service_id[-3:] if is_uk_bbc_stream else 0))
-    if url:
-        filename = url.rsplit("/", 1)[-1]
-        is_uhd = "uhd" in filename
+    if not url:
+        return None
 
-        return {
-            'callback': 'play_live',
-            'description': '\n'.join(filter(None, (chan_name, 'UHD' if is_uhd else None, brand_title, episode_title))),
-            'title': title + ' (UHD)' if is_uhd else title,
-            'params': {
-                'channel': chan_name,
-                'url': url
-            }
+    filename = url.rsplit("/", 1)[-1]
+    is_uhd = "uhd" in filename
+
+    def pgm_info():
+        for pgm in programme_data:
+            yield ''. join((pgm['published_time']['start'].astimezone(local_timezone).strftime('%H:%M'),
+                            '  ',
+                            pgm['brand']['title']))
+            yield pgm['episode']['title']
+
+    description = '\n'.join((chan_name, '[B]UHD[/B]' if is_uhd else '',
+                             *(line for line in pgm_info())))
+
+    return {
+        'callback': 'play_live',
+        'description': description,
+        'title': title + ' (UHD)' if is_uhd else title,
+        'params': {
+            'channel': chan_name,
+            'url': url
         }
-    return None
+    }
+
 
 
 def play_live(channel, url):

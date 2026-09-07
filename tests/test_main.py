@@ -11,3 +11,8 @@ class TestGetManifest(TestCase):
         url = main.get_manifest_url('red_button_one', 0)
         self.assertIsInstance(url, str)
         self.assertTrue(url.startswith('https://'))
+
+    def test_fetch_schedule(self):
+        schedule = main.fetch_schedule('red_button_one')
+        self.assertIsInstance(schedule, list)
+        self.assertTrue(len(schedule) > 0)
