@@ -1,15 +1,17 @@
 #  Copyright (c) 2022-2026 Dimitri Kroon.
 #  SPDX-License-Identifier: GPL-2.0-or-later
 #  This file is part of plugin.video.bbcsportstreams
+
+from __future__ import annotations
 import json
 import sys
 import inspect
 import xbmc
 import xbmcgui
 
+import requests
 from datetime import datetime, timezone
 from urllib.parse import parse_qsl, urlencode
-from urllib.request import Request, urlopen
 from concurrent import futures
 
 import xbmcplugin
@@ -47,25 +49,18 @@ def root():
 
 
 def fetch_schedule(service_id: str):
-    base_url = 'https://ess.api.bbci.co.uk/schedules'
-    params = urlencode({'serviceId': service_id})
-    url = f"{base_url}?{params}"
-
-    try:
-        with urlopen(url, timeout=1) as response:
-            raw_data = response.read().decode('utf-8')
-            return json.loads(raw_data)
-    except Exception:
+    resp = requests.get('https://ess.api.bbci.co.uk/schedules',
+                        params={'serviceId': service_id},
+                        timeout=1)
+    if resp.status_code == 200:
+        return json.loads(resp.content)
+    else:
         return None
 
 
 def url_is_up(url):
-    try:
-        req = Request(url, method='HEAD')
-        with urlopen(req, timeout=1) as resp:
-            return resp.status == 200
-    except Exception:
-        return False
+    resp = requests.head(url)
+    return resp.status_code == 200
 
 
 def get_current_programme(schedule_data):
@@ -167,21 +162,30 @@ def get_manifest_url(pid, strm_idx):
 
     transfer_format = 'dash' if supports_mpd else 'hls'
 
-    base_url = 'https://open.live.bbc.co.uk/mediaselector/6/select/version/3.0/mediaset/{}/cvid/urn:bbc:pips:pid:{}/format/json/cors/1'
+    base_url = ('https://open.live.bbc.co.uk/mediaselector/6/select/version/3.0/mediaset/'
+                '{}/cvid/urn:bbc:pips:pid:{}/format/json/cors/1')
 
     for media_set in media_sets:
+        resp = requests.get(base_url.format(media_set, pid), timeout=1)
+        if resp.status_code == 404:
+            continue
+        if (resp.status_code == 403
+            and json.loads(resp.content).get('result') == 'geolocation'):
+                raise GeoBLockError
+        resp.raise_for_status()
+
         try:
-            with urlopen(base_url.format(media_set, pid), timeout=1) as response:
-                json_data = json.loads(response.read().decode("utf-8"))
-                for media in json_data['media']:
-                    if media['encoding'] == encoding:
-                        for connection in media['connection']:
-                            if connection['protocol'] == 'https':
-                                if connection['transferFormat'] == transfer_format:
-                                    url = connection['href']
-                                    return url
-        except Exception:
-            pass
+            json_data = json.loads(resp.content)
+            for media in json_data['media']:
+                if media['encoding'] == encoding:
+                    for connection in media['connection']:
+                        if connection['protocol'] == 'https':
+                            if connection['transferFormat'] == transfer_format:
+                                url = connection['href']
+                                return url
+        except (json.JSONDecodeError, KeyError) as err:
+            utils.log_error(f"Error parsing media selector for pid '{pid}', "
+                            f"strm_idx '{strm_idx}', media_set '{media_set}' : {err}")
     return None
 
 
@@ -241,3 +245,10 @@ def run():
         utils.log_error("Unhandled exception:\n{}", traceback.format_exc())
         xbmcgui.Dialog().notification('BBC Sport Streams', str(err), xbmcgui.NOTIFICATION_ERROR)
         xbmcplugin.endOfDirectory(plugin_handle, False)
+
+
+class GeoBLockError(RuntimeError):
+    def __init__(self, message: str | None = None):
+        if not message:
+            message = "BBC streams are available only in the UK."
+        super().__init__(message)
