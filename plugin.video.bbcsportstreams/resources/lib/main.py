@@ -215,9 +215,11 @@ def process_service(service_id, local_timezone):
 
     def pgm_info():
         for pgm in programme_data:
-            yield ''. join((pgm['published_time']['start'].astimezone(local_timezone).strftime('%H:%M'),
+            yield ''. join(('[B][COLOR orange]',
+                            pgm['published_time']['start'].astimezone(local_timezone).strftime('%H:%M'),
                             '  ',
-                            pgm['brand']['title']))
+                            pgm['brand']['title'],
+                            '[/COLOR][/B]'))
             yield pgm['episode']['title']
 
     description = '\n'.join((chan_name, '[B]UHD[/B]' if is_uhd else '',
