@@ -172,8 +172,8 @@ def get_manifest_url(pid, strm_idx):
         if resp.status_code == 404:
             continue
         if (resp.status_code == 403
-            and json.loads(resp.content).get('result') == 'geolocation'):
-                raise GeoBLockError
+                and json.loads(resp.content).get('result') == 'geolocation'):
+            raise GeoBLockError
         resp.raise_for_status()
 
         try:
@@ -236,7 +236,6 @@ def process_service(service_id, local_timezone):
     }
 
 
-
 def play_live(channel, url):
     utils.log_info('play {}', channel)
     create_stream_item(channel, url, resume_time='43200')
@@ -247,11 +246,12 @@ def run():
         qs = sys.argv[2][1:]
         params = dict(parse_qsl(qs))
         func_name = params.pop('callb', None)
-        funcs = {name: member for name, member in inspect.getmembers(sys.modules[__name__])
-                 if (inspect.isfunction(member))}
-        callb = funcs.get(func_name)
-        if callb:
-            callb(**params)
+        if func_name:
+            funcs = {name: member for name, member in inspect.getmembers(sys.modules[__name__])
+                     if (inspect.isfunction(member))}
+            callb = funcs.get(func_name)
+            if callb:
+                callb(**params)
         else:
             main_menu()
         xbmcplugin.endOfDirectory(plugin_handle, cacheToDisc=False)
