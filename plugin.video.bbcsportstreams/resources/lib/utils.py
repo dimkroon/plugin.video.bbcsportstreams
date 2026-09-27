@@ -134,7 +134,9 @@ def local_tz():
 
     if ltz is None:
         try:
-            local_tz._ltz_ = ltz = ZoneInfo(get_system_setting('locale.timezone'))
+            kodi_tz = get_system_setting('locale.timezone')
+            log_debug("Kodi timezone setting found: '{}'", kodi_tz)
+            local_tz._ltz_ = ltz = ZoneInfo(kodi_tz)
         except (TypeError, ValueError):
             # To be Matrix compatible
             log_debug("No Kodi timezone setting found, falling back to tzlocal")
