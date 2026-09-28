@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addon id="plugin.video.bbcsportstreams" name="BBC sport streams" version="2.1.1" provider-name="Dimitri Kroon">
   <requires>
-    <import addon="xbmc.python" version="3.0.0"/>
-    <import addon="script.module.requests"/>
-    <import addon="script.module.inputstreamhelper"/>
+    <import addon="xbmc.python" version="3.0.0" />
+    <import addon="script.module.requests" />
+    <import addon="script.module.backports.zoneinfo" version="0.2.1" />
+    <import addon="script.module.tzdata" version="2023.3.0" />
+    <import addon="script.module.tzlocal" version="5.0.1" />
+    <import addon="script.module.inputstreamhelper" />
   </requires>
   <extension point="xbmc.python.pluginsource" library="addon.py">
     <provides>video</provides>
