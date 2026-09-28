@@ -25,12 +25,11 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Create Kodi installable zip
+      - name: Create zip file name
         id: package
         run: |
           python3 - << 'EOF'
           import os
-          import zipfile
           import xml.etree.ElementTree as ET
 
           addon_dir = 'plugin.video.bbcsportstreams'
@@ -45,10 +44,6 @@ jobs:
           addon_version = root.attrib.get('version', 'unknown')
 
           zip_filename = f"{addon_id}-{addon_version}.zip"
-          os.rename(addon_dir, zip_filename)
-
-          print(f"Created zip archive: {zip_filename}")
-
           github_output = os.environ.get('GITHUB_OUTPUT')
           if github_output:
               with open(github_output, 'a') as f:
@@ -57,6 +52,11 @@ jobs:
               print("GITHUB_OUTPUT not defined")
               sys.exit(1)
           EOF
+
+      - name: create installable folder structure
+        run: |
+          mkdir ${{ steps.package.outputs.zip_name }}
+          mv plugin.video.bbcsportstreams ${{ steps.package.outputs.zip_name }}/
 
       - name: Upload Kodi Zip Artifact
         uses: actions/upload-artifact@v7
