@@ -119,7 +119,7 @@ def get_system_setting(setting_id):
         return data['result']['value']
     except KeyError:
         msg = data.get('message') or "Failed to get setting"
-        log("get_system_setting failed for setting_id '%s': '%s'", setting_id, msg)
+        log_debug("get_system_setting failed for setting_id '{}': '{}'", setting_id, msg)
         raise ValueError('system setting error: {}'.format(msg))
 
 
