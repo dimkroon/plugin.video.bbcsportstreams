@@ -1,0 +1,69 @@
+name: Build Kodi Add-on Zip
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch or tag to build (leave empty for current/selected branch)'
+        required: false
+        type: string
+        default: ''
+
+jobs:
+  build-and-upload:
+    name: Package Addon
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.branch || github.ref }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.x'
+
+      - name: Create zip file name
+        id: package
+        run: |
+          python3 - << 'EOF'
+          import os
+          import xml.etree.ElementTree as ET
+
+          addon_dir = 'plugin.video.bbcsportstreams'
+          addon_xml_path = os.path.join(addon_dir, 'addon.xml')
+
+          if not os.path.exists(addon_xml_path):
+              raise FileNotFoundError(f"addon.xml not found at {addon_xml_path}")
+
+          tree = ET.parse(addon_xml_path)
+          root = tree.getroot()
+          addon_id = root.attrib.get('id', addon_dir)
+          addon_version = root.attrib.get('version', 'unknown') + '-test'
+          root.attrib['version'] = addon_version
+          tree.write(addon_xml_path, encoding='UTF-8', xml_declaration=True)
+
+          zip_filename = f"{addon_id}-{addon_version}.zip"
+          github_output = os.environ.get('GITHUB_OUTPUT')
+          if github_output:
+              with open(github_output, 'a') as f:
+                  f.write(f"zip_name={zip_filename}\n")
+                  f.write(f"addon_id={addon_id}\n")
+          else:
+              print("GITHUB_OUTPUT not defined")
+              sys.exit(1)
+          EOF
+
+      - name: Create an installable folder structure
+        run: |
+          mkdir ${{ steps.package.outputs.zip_name }}
+          mv ${{ steps.package.outputs.addon_id }} ${{ steps.package.outputs.zip_name }}/
+
+      - name: Upload Kodi Zip Artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ steps.package.outputs.zip_name }}
+          path: ${{ steps.package.outputs.zip_name }}
+          if-no-files-found: error
