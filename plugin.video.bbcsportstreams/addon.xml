@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.bbcsportstreams" name="BBC sport streams" version="2.2.1" provider-name="Dimitri Kroon">
+<addon id="plugin.video.bbcsportstreams" name="BBC sport streams" version="2.2.2" provider-name="Dimitri Kroon">
   <requires>
     <import addon="xbmc.python" version="3.0.0" />
     <import addon="script.module.requests" />
@@ -23,9 +23,8 @@
     </assets>
     <reuselanguageinvoker>false</reuselanguageinvoker>
     <news>
-[B]v 2.2.1[/B]
-— In the channel descriptions the start time and programme name are now coloured to improve readability.
-— Fix: On some systems the addon failed with 'No module named 'tzlocal' (regression from 2.2.0).
+[B]v 2.2.2[/B]
+— Fix: on a fresh install, the addon failed to open with error: 'no such file or directory'.
     </news>
   </extension>
 </addon>

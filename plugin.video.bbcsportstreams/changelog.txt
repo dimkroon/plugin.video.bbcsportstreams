@@ -1,3 +1,10 @@
+v 2.2.2
+    - Fix: on a fresh install, the addon failed to open with error: 'no such file or directory'.
+
+v 2.2.1
+    - In the channel descriptions the start time and programme name are now coloured to improve readability.
+    - Fix: On some systems the addon failed with 'No module named 'tzlocal' (regression from 2.2.0).
+
 v 2.2.0
     - Display current and future programmes in the description with the stream start time in the user's timezone.
     - Improved error handling and notifications.
