@@ -9,7 +9,7 @@ import importlib
 
 import xbmc
 from datetime import datetime
-from xbmcvfs import translatePath
+from xbmcvfs import translatePath, mkdirs
 import xbmcaddon
 
 try:
@@ -31,7 +31,7 @@ def create_addon_info(addon_id=None):
         addon = xbmcaddon.Addon()
         global loglevel
         loglevel = addon.getSettingInt('log-level')
-    return {
+    info = {
         "name": addon.getAddonInfo("name"),
         "id": addon.getAddonInfo("id"),
         "addon": addon,
@@ -40,6 +40,8 @@ def create_addon_info(addon_id=None):
         "path": addon.getAddonInfo("path"),
         "profile": translatePath(addon.getAddonInfo('profile')),
     }
+    mkdirs(info['profile'])
+    return info
 
 
 addon_info = create_addon_info()
