@@ -136,9 +136,14 @@ def local_tz():
 
     if ltz is None:
         try:
-            local_tz._ltz_ = ltz = ZoneInfo(get_system_setting('locale.timezone'))
-        except (TypeError, ValueError):
-            # To be Matrix compatible
+            kodi_tz = get_system_setting('locale.timezone')
+            log_debug("Kodi timezone setting: '{}'", kodi_tz)
+            local_tz._ltz_ = ltz = ZoneInfo(kodi_tz)
+        except (TypeError, ValueError, NameError, KeyError):
+            # NameError has been seen on Libreelec 12.2.1 (python 3.11) when a timezone was not set.
+            # Probably a bug in weakref.py that claims "KeyError is not defined", so expect a KeyError
+            # as well. For others; to be compatible with Matrix, Piers and newer, or when Kodi returns
+            # some unexpected timezone data.:
             log_debug("No Kodi timezone setting found, falling back to tzlocal")
             tzlocal = importlib.import_module('tzlocal')
             local_tz._ltz_ = ltz = tzlocal.get_localzone()
